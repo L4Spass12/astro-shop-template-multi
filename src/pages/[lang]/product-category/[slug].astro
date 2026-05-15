@@ -70,7 +70,7 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: t('nav.home', lang), item: `${SITE_URL}${lp}/` },
-    { '@type': 'ListItem', position: 2, name: t('shop.breadcrumbShop', lang), item: `${SITE_URL}${lp}/tapis-de-souris` },
+    { '@type': 'ListItem', position: 2, name: t('shop.breadcrumbShop', lang), item: `${SITE_URL}${lp}/${siteConfig.shop.path}` },
     { '@type': 'ListItem', position: 3, name: category.label, item: pageUrl },
   ],
 };
@@ -119,7 +119,7 @@ if (faqSchema) jsonLd.push(faqSchema);
     <nav class="flex items-center gap-2 text-xs text-n-500 mb-4 font-light">
       <a href={url('/')} class="hover:text-cream transition-colors">{t('nav.home', lang)}</a>
       <span>/</span>
-      <a href={url('/tapis-de-souris')} class="hover:text-cream transition-colors">{t('shop.breadcrumbShop', lang)}</a>
+      <a href={url('/' + siteConfig.shop.path)} class="hover:text-cream transition-colors">{t('shop.breadcrumbShop', lang)}</a>
       <span>/</span>
       <span class="text-n-400">{category.label}</span>
     </nav>
@@ -158,7 +158,7 @@ if (faqSchema) jsonLd.push(faqSchema);
           </svg>
         </summary>
         <div class="cat-panel absolute top-full left-0 mt-2 min-w-[280px] md:min-w-[320px] rounded-2xl border border-white/[0.12] bg-panel shadow-2xl p-2 z-20" role="menu">
-          <a href={url('/tapis-de-souris')} class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm text-n-400 hover:bg-white/[0.05] hover:text-cream transition-colors">
+          <a href={url('/' + siteConfig.shop.path)} class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm text-n-400 hover:bg-white/[0.05] hover:text-cream transition-colors">
             <span>{t('nav.categoriesAll', lang)}</span>
             <span class="text-[10px] text-n-500 uppercase tracking-widest">{t('nav.shop', lang)}</span>
           </a>

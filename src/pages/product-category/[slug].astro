@@ -67,7 +67,7 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Tapis de souris', item: `${SITE_URL}/tapis-de-souris` },
+    { '@type': 'ListItem', position: 2, name: 'Tapis de souris', item: `${SITE_URL}/${siteConfig.shop.path}` },
     { '@type': 'ListItem', position: 3, name: category.label, item: pageUrl },
   ],
 };
@@ -118,7 +118,7 @@ if (faqSchema) jsonLd.push(faqSchema);
     <nav class="flex items-center gap-2 text-xs text-n-500 mb-4 font-light" aria-label="Fil d'ariane">
       <a href="/" class="hover:text-cream transition-colors">Accueil</a>
       <span>/</span>
-      <a href="/tapis-de-souris" class="hover:text-cream transition-colors">Tapis de souris</a>
+      <a href={`/${siteConfig.shop.path}`} class="hover:text-cream transition-colors">Tapis de souris</a>
       <span>/</span>
       <span class="text-n-400">{category.label}</span>
     </nav>
@@ -160,7 +160,7 @@ if (faqSchema) jsonLd.push(faqSchema);
           role="menu"
         >
           <a
-            href="/tapis-de-souris"
+            href={`/${siteConfig.shop.path}`}
             class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm text-n-400 hover:bg-white/[0.05] hover:text-cream transition-colors"
             role="menuitem"
           >

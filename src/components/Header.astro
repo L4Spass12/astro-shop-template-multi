@@ -30,7 +30,7 @@ const LEGAL = ['/contact', '/mentions-legales', '/politique-de-confidentialite',
                '/conditions-generales-de-vente-cgv', '/livraisons-et-retours'];
 
 const isHome    = stripped === '/';
-const isShop    = stripped === '/tapis-de-souris' || stripped.startsWith('/product/') || stripped.startsWith('/product-category/');
+const isShop    = stripped === `/${siteConfig.shop.path}` || stripped.startsWith('/product/') || stripped.startsWith('/product-category/');
 const isContact = stripped === '/contact';
 // Blog actif sur /blog, /category/*, et les articles de blog (slug à la racine
 // non légal + non home)
@@ -57,7 +57,7 @@ const cats = (siteConfig.productCategories || []) as {slug:string; label:string}
       <a href={url('/')} class={`nav-link ${isHome ? 'nav-active' : ''}`} aria-current={isHome ? 'page' : undefined}>{t('nav.home', lang)}</a>
 
       {siteConfig.shop?.enabled && (
-        <a href={url('/tapis-de-souris')} class={`nav-link ${isShop ? 'nav-active' : ''}`} aria-current={isShop ? 'page' : undefined}>{t('nav.shop', lang)}</a>
+        <a href={url('/' + siteConfig.shop.path)} class={`nav-link ${isShop ? 'nav-active' : ''}`} aria-current={isShop ? 'page' : undefined}>{t('nav.shop', lang)}</a>
       )}
 
       {siteConfig.shop?.enabled && cats.length > 0 && (
@@ -72,7 +72,7 @@ const cats = (siteConfig.productCategories || []) as {slug:string; label:string}
             </svg>
           </summary>
           <div class="nav-cat-panel absolute top-full left-1/2 -translate-x-1/2 mt-3 min-w-[300px] rounded-2xl border border-white/[0.12] bg-panel shadow-2xl p-2 z-30" role="menu">
-            <a href={url('/tapis-de-souris')} class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm text-n-400 hover:bg-white/[0.05] hover:text-cream transition-colors" role="menuitem">
+            <a href={url('/' + siteConfig.shop.path)} class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm text-n-400 hover:bg-white/[0.05] hover:text-cream transition-colors" role="menuitem">
               <span>{t('nav.categoriesAll', lang)}</span>
               <span class="text-[10px] text-n-500 uppercase tracking-widest">{t('nav.shop', lang)}</span>
             </a>
@@ -162,7 +162,7 @@ const cats = (siteConfig.productCategories || []) as {slug:string; label:string}
     <a href={url('/')} class={`block py-2.5 transition-colors ${isHome ? 'text-cream font-medium' : 'text-n-400 hover:text-cream'}`} aria-current={isHome ? 'page' : undefined}>{t('nav.home', lang)}</a>
     {siteConfig.shop?.enabled && (
       <a
-        href={url('/tapis-de-souris')}
+        href={url('/' + siteConfig.shop.path)}
         class={`my-1.5 flex items-center justify-between gap-2 px-4 py-2.5 rounded-full border transition-colors ${isShop ? 'bg-cream text-dark border-cream font-medium' : 'border-white/[0.12] bg-white/[0.03] text-cream hover:border-white/25 hover:bg-white/[0.07]'}`}
         aria-current={isShop ? 'page' : undefined}
       >

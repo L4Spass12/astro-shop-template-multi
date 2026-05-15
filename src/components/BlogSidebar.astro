@@ -11,7 +11,7 @@ interface Props {
 const { headings, lang = 'fr' } = Astro.props;
 const toc = headings.filter((h) => h.depth === 2);
 const lp = localePrefix(lang);
-const shopUrl = `${lp}/tapis-de-souris`;
+const shopUrl = `${lp}/${siteConfig.shop.path}`;
 ---
 
 <!-- ── Desktop sidebar (lg+) ── -->

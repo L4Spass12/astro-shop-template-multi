@@ -43,7 +43,7 @@ const currentYear = new Date().getFullYear();
       <ul class="space-y-3 text-xs text-n-500 font-light">
         <li><a href={url('/')} class="hover:text-cream transition-colors">{t('nav.home', lang)}</a></li>
         <li><a href={url('/blog')} class="hover:text-cream transition-colors">{t('nav.blog', lang)}</a></li>
-        {siteConfig.shop?.enabled && <li><a href={url('/tapis-de-souris')} class="hover:text-cream transition-colors">{t('nav.shop', lang)}</a></li>}
+        {siteConfig.shop?.enabled && <li><a href={url('/' + siteConfig.shop.path)} class="hover:text-cream transition-colors">{t('nav.shop', lang)}</a></li>}
       </ul>
     </div>
 

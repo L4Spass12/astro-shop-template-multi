@@ -121,7 +121,7 @@ const faqSchema = {
       </p>
 
       <div class="flex flex-col sm:flex-row items-start gap-3">
-        <a href="/tapis-de-souris" class="btn-primary inline-flex items-center gap-2">
+        <a href={`/${siteConfig.shop.path}`} class="btn-primary inline-flex items-center gap-2">
           Découvrir
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         </a>
@@ -141,7 +141,7 @@ const faqSchema = {
             <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-2 block">Sélection</span>
             <h2 class="text-2xl md:text-3xl font-medium tracking-tight text-cream">Produits en vedette</h2>
           </div>
-          <a href="/tapis-de-souris" class="hidden md:inline-flex items-center gap-1 text-sm text-n-400 hover:text-cream transition-colors whitespace-nowrap">
+          <a href={`/${siteConfig.shop.path}`} class="hidden md:inline-flex items-center gap-1 text-sm text-n-400 hover:text-cream transition-colors whitespace-nowrap">
             Voir tout
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </a>
@@ -557,7 +557,7 @@ const faqSchema = {
         Explorez la boutique pour trouver la surface qui correspond à votre style, ou créez votre propre tapis unique.
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a href="/tapis-de-souris" class="w-full sm:w-auto btn-primary">Voir la boutique</a>
+        <a href={`/${siteConfig.shop.path}`} class="w-full sm:w-auto btn-primary">Voir la boutique</a>
         <a href="/blog" class="w-full sm:w-auto btn-outline">Lire le blog</a>
       </div>
     </div>
