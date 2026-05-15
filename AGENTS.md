@@ -1,19 +1,25 @@
 # AGENTS.md — Template e-commerce Astro multi-locale
 
-> **Pour les agents IA :** ce fichier est la *source de vérité* pour cloner ce
-> template vers un nouveau site (autre niche, autre design). Suis ce checklist
-> dans l'ordre — chaque étape est testée. Ne saute rien.
+> **Pour les agents IA :** ce fichier est la **seule** source de vérité pour
+> cloner ce template vers un nouveau site (autre niche, autre marque). Suis
+> le checklist dans l'ordre. À la fin, `node scripts/init.mjs` doit afficher
+> "✅ Init terminé sans bloquant" — **c'est le seul critère "site prêt"**.
 
-## Architecture en 30 secondes
+---
 
-- **Astro 4** statique multi-locale (FR par défaut, EN/DE optionnels via préfixe `/en/`, `/de/`).
-- **Paiement** : widget Atelier (Cloudflare Worker `seamless-cart`) → Stripe. Le widget est injecté dans `BaseLayout.astro` via `data-shop-id`.
+## 🎯 Architecture en 60 secondes
+
+- **Astro 4** statique multi-locale (FR par défaut, EN/DE optionnels via `/en/`, `/de/`).
+- **Paiement** : widget Atelier (Cloudflare Worker `seamless-cart`) → Stripe. Injecté dans `BaseLayout.astro` via `data-shop-id`.
 - **Contenu** : collections Astro dans `src/content/{blog,products,productCategories}/` (FR à la racine, `en/` et `de/` en sous-dossier).
-- **i18n** : `src/lib/i18n.ts` (`t()`, `localePrefix()`, `parseEntrySlug()`).
+- **i18n UI** : `src/i18n/{fr,en,de}.json` lu via `t()` dans `src/lib/i18n.ts`.
 - **Config centrale** : `site.config.mjs` — **TOUT** ce qui change d'un site à l'autre vit ici.
 - **Déploiement** : GitHub Actions → FTP Hostinger.
+- **Articles auto** : cron Lun/Mer/Ven via Claude API + Unsplash.
 
-## ⚡ Checklist de création d'un nouveau site
+---
+
+## ⚡ Checklist de création (ordre strict)
 
 ### 1. Cloner & repo
 
@@ -21,178 +27,203 @@
 git clone https://github.com/L4Spass12/astro-shop-template-multi.git mon-nouveau-site
 cd mon-nouveau-site
 rm -rf .git && git init
-# Créer le repo GitHub correspondant puis :
 git remote add origin git@github.com:L4Spass12/mon-nouveau-site.git
 npm install
 ```
 
-### 2. Éditer `site.config.mjs` (⚠ section unique à toucher)
+### 2. Éditer `site.config.mjs` — ⚠ source de vérité
 
-Tout est commenté. Les blocs marqués `⚠` sont **obligatoires** :
+Édite **toutes** les valeurs marquées `⚠`. Voici la liste exhaustive :
 
-- `name`, `url`, `description` — identité du site
-- `logoPrefix` / `logoSuffix` — split visuel du logo (ex: `Mon` + `Shop`)
-- `shop.path` — slug de la boutique (ex: `boutique`, `produits`, `tapis-de-souris`)
-- `shop.atelierShopId` — UUID du shop côté Atelier (créé via dashboard `seamless-cart`)
-- `shop.customProductSlug` — slug du produit personnalisable (CTA "Personnaliser"), `null` si pas de personnalisation
-- `shop.categoryLabelPrefix` — préfixe à supprimer des labels catégorie (ex. "Tapis de souris" → "Gaming" au lieu de "Tapis de souris Gaming"), `''` pour désactiver
-- `shop.sizeCategorySlugs` / `featureCategorySlugs` — catégories transversales dépriorityées pour le slider "Vous aimerez aussi"
-- `home.guideLinks.{gaming,xxl}` — slugs catégories injectés dans les paragraphes guides via placeholders `LINK_GAMING` / `LINK_XXL`
-- `forms.web3formsKey` + `forms.subjectPrefix`
-- `legal.editor.*` — éditeur (laisser EI Quentin Amat si même propriétaire)
-- `categories` + `categorySlugs` — taxonomie produit
-- `home.categoryRows` — sliders thématiques de la homepage (slug + labels par locale + glows)
-- `home.testimonials.{fr,en,de}` — 4 avis client par locale
-- `home.faqs.{fr,en,de}` — 5 Q/A par locale
-- `home.heroImageAlt` — alt de l'image hero
+**Identité :**
+- `name` — nom du site (ex. `'BébéNest'`)
+- `url` — URL prod sans slash final (ex. `'https://bebenest.com'`)
+- `description` — meta description (1-2 phrases)
+- `logoPrefix` / `logoSuffix` — split visuel du logo header
 
-### 3. Renommer le fichier de la boutique (le filename = URL en Astro)
+**Shop :**
+- `shop.path` — slug URL de la boutique (ex. `'boutique'`, `'produits-bebe'`)
+- `shop.currency` — code ISO (`'EUR'`, `'USD'`, `'GBP'`)
+- `shop.atelierShopId` — **OBLIGATOIRE** : créer un nouveau shop sur le dashboard `seamless-cart` Cloudflare Worker, copier l'UUID. **NE PAS LAISSER celui de BuddyPad** sinon les paiements partent ailleurs.
+- `shop.customProductSlug` — slug du produit personnalisable (CTA "Personnaliser"). `null` si pas de personnalisation.
+- `shop.categoryLabelPrefix` — préfixe stripé des labels catégorie (`''` pour désactiver).
+- `shop.sizeCategorySlugs` / `featureCategorySlugs` — slugs de catégories transversales (tailles, options) à dépriorityser dans "Vous aimerez aussi".
 
-Si tu changes `shop.path` (ex: `boutique` au lieu de `tapis-de-souris`) :
+**Forms & contact :**
+- `forms.web3formsKey` — **OBLIGATOIRE** : créer un compte sur https://web3forms.com, copier la clé (sinon les leads partent chez BuddyPad).
+- `forms.contactEmail` — email recevant les formulaires.
+- `forms.subjectPrefix` — préfixe des sujets emails.
 
-```bash
-mv src/pages/tapis-de-souris.astro src/pages/<shop.path>.astro
-mv "src/pages/[lang]/tapis-de-souris.astro" "src/pages/[lang]/<shop.path>.astro"
-```
+**Legal (peut rester EI Quentin Amat si même propriétaire) :**
+- `legal.editor.*` — nom, statut, adresse, téléphone, email, statut TVA
+- `legal.hosting.*` — hébergeur (Hostinger par défaut)
+- `legal.domain` — auto-dérivé de `url` (laisser `''`)
 
-Le contenu de ces fichiers utilise déjà `siteConfig.shop.path` pour les liens
-internes — pas besoin d'éditer le code, juste le nom de fichier.
+**Categories blog (3 max) :**
+- `categories` — array de strings — **DOIT matcher** les `category:` dans les frontmatter des `.md` de `src/content/blog/`, sinon build crash sur `z.enum`.
 
-### 4. Vider les collections de contenu et les ré-emplir
+**Home content (par locale) :**
+- `home.heroImageAlt`
+- `home.guideLinks.{gaming,xxl}` — slugs catégories pour les liens internes des guides (placeholders `LINK_GAMING`/`LINK_XXL` dans i18n)
+- `home.categoryRows[]` — sliders thématiques. **Schéma exact :**
+  ```js
+  {
+    slug: 'ma-categorie',        // doit exister dans productCategories
+    labels: { fr: '...', en: '...', de: '...' },  // recommandé
+    // OU : label: '...' (legacy, FR seulement)
+    glow1: 'rgba(R, G, B, A)',  // couleur de glow décoratif 1
+    glow2: 'rgba(R, G, B, A)',  // couleur de glow décoratif 2
+  }
+  ```
+- `home.testimonials.{fr,en,de}` — array de `{ name, text }` (4 entrées par locale recommandé)
+- `home.faqs.{fr,en,de}` — array de `{ q, a }` (5 par locale recommandé, génère un FAQPage schema.org)
 
-```bash
-rm -rf src/content/blog/*.md src/content/blog/en/*.md src/content/blog/de/*.md
-rm -rf src/content/products/*.md src/content/products/en/*.md src/content/products/de/*.md
-rm -rf src/content/productCategories/*.md src/content/productCategories/en/*.md src/content/productCategories/de/*.md
-```
+**Article auto-generation :**
+- `article.context`, `theme`, `cta`, `author`, `unsplashContext`, `coverFallbackKeyword` — voir section "Articles auto" plus bas
 
-Le schéma de chaque collection est dans `src/content/config.ts` — respecte-le.
+### 3. Éditer `src/i18n/{fr,en,de}.json` — chaînes UI
 
-Pattern de slug : `mon-produit.md` à la racine = locale FR. La version EN est `en/mon-produit.md` (**même slug**, c'est ce qui permet `parseEntrySlug` de relier les deux). Idem `de/`.
-
-### 5. Vider `public/images/`
-
-```bash
-rm -rf public/images/blog/* public/images/products/* public/images/produits/* public/images/about/*
-# Garde public/images/home/ (hero), public/images/inline/ (assets génériques)
-# Remets tes propres images, mêmes noms si possible (sinon update les MD).
-```
-
-### 6. Traductions i18n — **OBLIGATOIRE pour changer de niche**
-
-`src/i18n/{fr,en,de}.json` contient **toutes** les chaînes UI visibles
-(hero, guides, FAQ, blog intro, perf section, etc.). Les pages
-`index.astro` et `[lang]/index.astro` lisent ces fichiers via `t()`.
-
-Édite **toutes** les clés mentionnant le produit/secteur :
-- `home.heroTag`, `heroTitle`, `heroSubtitle`
-- `home.guide1Title` à `guide3P2` (les paragraphes contiennent
-  `LINK_GAMING` / `LINK_XXL` qui seront remplacés au build par les URLs
-  configurées dans `home.guideLinks`)
+**OBLIGATOIRE pour changer de niche.** Toutes les chaînes visibles dans le site sont là. Édite **chaque clé** mentionnant le produit/secteur :
+- `home.heroTag`, `heroTitle`, `heroSubtitle`, `ctaDiscover`, `ctaCustomize`
+- `home.guide1Title` à `guide3P2` (les paragraphes contiennent `LINK_GAMING`/`LINK_XXL`)
 - `home.perfTitle`, `perfText`
-- `home.customTitle`, `customSubtitle`
-- `blog.title` (avec placeholder `{site}`), `blog.subtitle`, `blog.intro`
-- `shop.breadcrumbShop` (label de la boutique dans les fils d'Ariane)
+- `home.customTitle`, `customSubtitle`, `customCta`
+- `home.ctaTitle`, `ctaSubtitle`, `ctaShop`, `ctaBlog`
+- `blog.title` (avec placeholder `{site}`), `blog.subtitle`, `blog.intro`, `blog.ctaTitle`, `blog.ctaSubtitle`
+- `shop.breadcrumbShop` — label boutique dans les fils d'Ariane
+- `fabrication.*` — section "Fabrication haute précision"
+- `nav.*` — items du menu
 
-**Test rapide** : `grep -rn -i "mouse\|tapis\|pad" src/i18n/*.json` doit
-ne plus rien retourner après édition pour une nouvelle niche.
+**Test** : `grep -rn -iE "mouse|tapis|pad|baby|<ton ancienne niche>" src/i18n/*.json` doit ne rien retourner.
 
-### 7. Pages légales
+### 4. Remplacer les images dans `public/`
 
-Les 4 pages `mentions-legales`, `conditions-generales-de-vente-cgv`,
-`politique-de-confidentialite`, `livraisons-et-retours` sont déjà
-templatisées : elles lisent `siteConfig.legal.*`. Rien à toucher si l'éditeur
-ne change pas.
+**OBLIGATOIRE** — sinon le hero et l'OG affichent BuddyPad. Garde **exactement** les mêmes noms de fichiers :
 
-### 8. Build + dry-run
-
-```bash
-npm run build  # doit passer sans erreur, ~285 pages générées
-npm run preview  # vérif visuelle
+```
+public/og-image.jpg                          # 1200×630, partage social
+public/favicon.svg                            # logo carré simple
+public/images/home/hero-desktop.webp         # 2560×1086, hero desktop
+public/images/home/hero-desktop-800w.webp    # variant 800w
+public/images/home/hero-mobile.webp          # 1080×~ portrait, mobile
+public/images/about/fabrication.webp         # section fabrication
+public/images/about/fabrication-400w.webp    # variant
+public/images/about/fabrication-800w.webp    # variant
 ```
 
-### 9. Déploiement GitHub Actions
+Les images produits/catégories/blog vivent dans `public/images/products/`, `public/images/blog/` — référencées par les `.md`.
 
-`.github/workflows/deploy.yml` push vers Hostinger via FTP. Configure les
-**secrets repo** :
-- `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`, `FTP_SERVER_DIR`
+### 5. Synchroniser les content collections
 
-## 🤖 Système d'articles auto-générés (CRON 3×/semaine)
+**Stratégie : garde 1 sample par collection** comme modèle, vide le reste. Tu ré-écris à partir du sample :
 
-Le template inclut une chaîne complète de génération + traduction + déploiement d'articles SEO. **Conserve-la** — c'est un gros différenciateur.
+```bash
+# Blog : garde l'article le + récent comme modèle, supprime les autres
+ls src/content/blog/*.md | tail -n +2 | xargs rm -f
+ls src/content/blog/en/*.md 2>/dev/null | tail -n +2 | xargs rm -f
+ls src/content/blog/de/*.md 2>/dev/null | tail -n +2 | xargs rm -f
+
+# Idem pour products et productCategories
+ls src/content/products/*.md | tail -n +2 | xargs rm -f
+ls src/content/productCategories/*.md | tail -n +2 | xargs rm -f
+```
+
+Le **schéma** de chaque collection est dans `src/content/config.ts` — respecte-le strictement. Pour un nouveau `.md`, copie le sample restant et adapte. Conventions slugs :
+- `produit.md` à la racine = locale FR
+- `en/produit.md` = traduction EN (**même slug** que la version FR — c'est ce qui les relie)
+- `de/produit.md` = idem
+
+⚠ **`category:` du frontmatter blog DOIT exister dans `siteConfig.categories`** (attention aux apostrophes typographiques `’` vs `'`).
+
+### 6. Purger `scripts/topics.json`
+
+```bash
+echo '[]' > scripts/topics.json
+```
+
+Puis remplis avec 30-50 sujets de ta niche au format `[{"title": "..."}]`. Le CRON consomme le 1er sujet sans `publishedAt` à chaque run.
+
+### 7. Lancer le script d'init automatique
+
+```bash
+node scripts/init.mjs
+```
+
+Il :
+- met à jour `package.json` name depuis `siteConfig.name`
+- renomme `src/pages/tapis-de-souris.astro` → `<shop.path>.astro` (et la version `[lang]/`)
+- audit les hardcodes BuddyPad résiduels
+- audit les clés (web3forms, atelierShopId, emails) encore au template
+- audit le sync `categories` ↔ `blog.category` (évite le crash z.enum)
+- audit les images requises
+- audit `topics.json`
+
+**Le seul critère "prêt"** : ce script affiche `✅ Init terminé sans bloquant`. Sinon il liste exactement ce qui manque, tu corriges, tu relances.
+
+### 8. Build + test local
+
+```bash
+npm run build      # doit passer sans erreur
+npm run preview    # vérif visuelle sur http://localhost:4321
+```
+
+### 9. Secrets GitHub + premier déploiement
+
+Onglet `Settings → Secrets and variables → Actions` du repo, ajoute :
+- `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD` — Hostinger FTP
+- `ANTHROPIC_API_KEY` — pour les articles auto (Console Anthropic)
+- `UNSPLASH_ACCESS_KEY` — pour les images d'article (Unsplash Developer)
+
+```bash
+git add -A
+git commit -m "feat: initial setup <site>"
+git push -u origin main
+```
+
+Le workflow `deploy.yml` se déclenche automatiquement et pousse vers Hostinger.
+
+---
+
+## 🤖 Articles auto-générés (CRON 3×/semaine)
 
 **Pipeline** (`.github/workflows/generate-article.yml`, cron `0 8 * * 1,3,5`) :
-1. `scripts/generate-article.mjs` — pioche un sujet dans `scripts/topics.json`, génère un article FR via Claude API, télécharge 2-3 images Unsplash.
-2. `scripts/translate-content.mjs --lang en/de --collection blog` — traduit auto en EN + DE (idempotent).
-3. `scripts/generate-responsive.mjs` — variants `-400w` / `-800w` pour LCP.
-4. Commit + build + déploiement FTP Hostinger.
+1. `scripts/generate-article.mjs` — pioche un sujet dans `scripts/topics.json`, génère via Claude API + télécharge images Unsplash
+2. `scripts/translate-content.mjs --lang en/de --collection blog` — traduit auto EN+DE (idempotent)
+3. `scripts/generate-responsive.mjs` — variants `-400w`/`-800w`
+4. Auto-commit + auto-deploy FTP
 
-**Pour activer sur un nouveau site :**
+**Pour activer :** secrets `ANTHROPIC_API_KEY` + `UNSPLASH_ACCESS_KEY` + FTP (étape 9). Sans ces secrets, le workflow skip proprement (guard intégré).
 
-- Édite le bloc `article:` dans `site.config.mjs` :
-  - `context` — phrase qui décrit le site (injectée dans le prompt Claude)
-  - `theme` — thématique principale (sert à proposer de nouveaux sujets)
-  - `cta` — phrase de fin d'article
-  - `author` — nom affiché dans le frontmatter
-  - `unsplashContext` — mot-clé visuel ajouté à chaque recherche image
-  - `coverFallbackKeyword` — fallback si Unsplash ne renvoie rien
-- Remplis `scripts/topics.json` avec ~30-50 sujets dans ta niche (format `[{"title": "..."}]` — le script ajoute `publishedAt` au fur et à mesure).
-- Configure les **secrets GitHub** du repo :
-  - `ANTHROPIC_API_KEY` (clé Claude API)
-  - `UNSPLASH_ACCESS_KEY` (clé Unsplash Developer)
-  - `FTP_SERVER` / `FTP_USERNAME` / `FTP_PASSWORD` (déjà nécessaires pour `deploy.yml`)
+**Pour désactiver le cron** (génération manuelle uniquement) : commente la ligne `schedule:` dans `.github/workflows/generate-article.yml`.
 
-**Test manuel** : onglet *Actions* GitHub → `Generate Article` → *Run workflow*. Le premier run vérifie tout le pipeline sans attendre le cron.
+---
 
-**Scripts utilitaires complémentaires** (à conserver, utiles pour la maintenance) :
-- `scripts/translate-all.mjs` — re-traduit tout le contenu si la config change
-- `scripts/i18n-skeleton-{blog,products}.mjs` — crée les squelettes EN/DE manquants
-- `scripts/optimize-images.mjs` / `generate-responsive.mjs` — pipeline image
-- `scripts/init.mjs` — bootstrap d'un nouveau site (à lire avant tout)
+## 🚫 À ne JAMAIS toucher (génériques, validés)
 
-## 🚫 À ne JAMAIS toucher (ces fichiers sont génériques, validés)
-
-- `src/lib/i18n.ts` — moteur i18n
-- `src/lib/inline-md.ts`, `src/lib/image.ts`
-- `src/layouts/BaseLayout.astro` (sauf si on ajoute Analytics)
-- `src/components/CookieBanner.astro`
-- `src/components/Header.astro`, `Footer.astro` (lisent déjà config)
+- `src/lib/i18n.ts`, `src/lib/inline-md.ts`, `src/lib/image.ts`
+- `src/layouts/BaseLayout.astro`
+- `src/components/CookieBanner.astro`, `Header.astro`, `Footer.astro`
+- `src/content/config.ts` (modifier seulement pour ajouter des champs, pas pour changer la structure)
 - `astro.config.mjs`
-- `.github/workflows/` (deploy.yml + generate-article.yml)
-- `scripts/generate-article.mjs`, `scripts/translate-content.mjs`,
-  `scripts/generate-responsive.mjs` — chaîne d'articles auto
+- `.github/workflows/deploy.yml`, `generate-article.yml` (guards intégrés)
+- `scripts/generate-article.mjs`, `translate-content.mjs`, `generate-responsive.mjs`, `init.mjs`
 
-## 🔍 Comment vérifier qu'il ne reste plus de hardcode "buddypad"
+## 🗑 Scripts legacy (peuvent être supprimés)
 
+Ces scripts ont servi à migrer depuis WordPress vers Astro pour BuddyPad. Pour un nouveau site, supprime-les :
 ```bash
-grep -rn -iE "buddypad|tapis.de.souris" src/ --include="*.astro" \
-  | grep -v "siteConfig" \
-  | grep -v "// "
+rm scripts/wp-scrape*.mjs scripts/convert-*.mjs scripts/download-images.mjs scripts/fill-category-content.mjs scripts/i18n-translate-products-bodies.mjs scripts/i18n-update-prices.mjs
 ```
-
-Tout résultat = à corriger (sauf les commentaires explicatifs).
 
 ## ⚠ Paiement Stripe — règles d'or
 
-Le widget Atelier est injecté **une seule fois** dans `BaseLayout.astro`. Il
-lit `data-shop-id`, `data-locale`, `data-currency`. Si tu touches à ce
-script, teste un paiement end-to-end avant de pusher. Le `shop-id` doit
-matcher un shop existant côté Cloudflare Worker `seamless-cart`.
+Le widget Atelier est injecté **une seule fois** dans `BaseLayout.astro`. Il lit `data-shop-id`, `data-locale`, `data-currency`. Si tu touches à ce script, teste un paiement end-to-end avant de pusher. Le `shop-id` DOIT pointer vers un shop **propre à ce site** côté Cloudflare Worker `seamless-cart`.
 
-## Structure des données
+## 🔍 Commande de vérification finale
 
-```
-site.config.mjs              → 1 fichier, tout le site-specific
-src/i18n/{fr,en,de}.json     → strings UI
-src/content/blog/            → articles FR à la racine, en/* et de/* en sous-dossier
-src/content/products/        → idem
-src/content/productCategories/ → idem
-src/pages/                   → routes (le nom de fichier = URL)
-src/pages/[lang]/            → miroirs EN/DE des routes FR
+```bash
+grep -rn -iE "buddypad|tapis.de.souris|Quentin|Roubaix" src/ --include="*.astro" --include="*.ts" \
+  | grep -v "siteConfig" | grep -v "^[^:]*:[0-9]*: *//"
 ```
 
-## Anti-pattern fréquent
-
-❌ **Ne** copie **pas** une valeur de `site.config.mjs` dans un composant :
-réimporte le config (`import siteConfig from '../../site.config.mjs'`) et
-lis dynamiquement. C'est ce qui garantit qu'éditer un seul fichier suffit.
+Tout résultat = à corriger (les `siteConfig.*` sont OK, les commentaires aussi).

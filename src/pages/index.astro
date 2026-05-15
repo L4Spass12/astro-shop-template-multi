@@ -40,7 +40,13 @@ function byCategory(slug: string) {
 // On enrichit chaque entrée avec ses produits filtrés FR puis on garde les
 // catégories qui ont au moins un produit (sinon section vide).
 const categoryRows = (siteConfig.home?.categoryRows ?? [])
-  .map((row) => ({ ...row, products: byCategory(row.slug) }))
+  .map((row) => ({
+    ...row,
+    // Supporte les deux schémas : { label: "FR string" } (legacy)
+    // ou { labels: { fr, en, de } } (recommandé, aligné avec [lang]/index.astro).
+    label: row.labels?.fr ?? row.labels?.en ?? row.label ?? row.slug,
+    products: byCategory(row.slug),
+  }))
   .filter((row) => row.products.length > 0);
 
 // Témoignages + FAQ : full content dans site.config.home.* par locale.
