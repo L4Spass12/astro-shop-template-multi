@@ -1,0 +1,162 @@
+@import '@fontsource/inter/300.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --header-h: 64px;
+  color-scheme: dark;
+}
+@media (min-width: 768px) {
+  :root { --header-h: 72px; }
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply bg-dark text-n-400 font-body antialiased;
+    /* Pure minimal look */
+    font-feature-settings: 'ss01', 'cv11';
+  }
+  h1, h2, h3, h4 {
+    @apply text-cream font-medium tracking-tight;
+  }
+  ::selection {
+    @apply bg-beige text-cream;
+  }
+}
+
+@layer components {
+  /* Primary button — white on black (GLIDE-style) */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-cream text-dark
+           px-6 py-3 rounded-full
+           font-body text-sm font-medium tracking-tight
+           transition-colors duration-300
+           hover:bg-n-400;
+  }
+  /* Secondary outline button */
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2
+           bg-transparent text-cream
+           border border-white/10
+           px-6 py-3 rounded-full
+           font-body text-sm font-medium tracking-tight
+           transition-colors duration-300
+           hover:bg-white/5;
+  }
+  .section-title {
+    @apply font-medium tracking-tight text-cream text-3xl md:text-4xl lg:text-5xl leading-[1.1];
+  }
+  .section-subtitle {
+    @apply font-light text-base md:text-lg text-n-400 leading-relaxed;
+  }
+
+  /* Pill tag — minimal border style */
+  .tag {
+    @apply inline-flex items-center gap-2
+           px-3 py-1 rounded-full
+           text-xs font-medium
+           border border-white/[0.08] bg-white/[0.02] text-n-400
+           backdrop-blur-sm;
+  }
+  .tag::before { content: none; }
+  .tag-light {
+    @apply bg-white/[0.02] text-cream border-white/[0.08];
+  }
+  .tag-beige {
+    @apply bg-white/[0.02] text-n-400 border-white/[0.08];
+  }
+  .tag-terracotta {
+    @apply bg-cream text-dark border-transparent;
+  }
+  .tag-teal {
+    @apply bg-white/[0.02] text-cream border-white/[0.08];
+  }
+  .tag-sage {
+    @apply bg-sage/10 text-sage border-sage/20;
+  }
+  .tag-outline-light {
+    @apply bg-white/[0.02] text-cream backdrop-blur-sm border-white/[0.08];
+  }
+  /* Status pill with colored dot (like "Nouveau : ..." in GLIDE) */
+  .tag-status::before {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: rgba(34, 197, 94, 0.85);
+  }
+
+  /* Prose / blog figures */
+  .prose figure {
+    @apply my-8 rounded-2xl overflow-hidden border border-white/[0.05];
+  }
+  .prose figure img {
+    @apply w-full h-64 md:h-80 object-cover;
+  }
+  .prose figure figcaption {
+    @apply text-center text-xs text-n-500 font-light py-2 px-4 bg-panel;
+  }
+
+  /* FAQ accordion */
+  .prose details {
+    @apply mb-3 rounded-2xl overflow-hidden border border-white/[0.08] bg-panel;
+    transition: border-color 0.2s ease;
+  }
+  .prose details:hover { @apply border-white/20; }
+  .prose details[open] { @apply border-white/20; }
+  .prose details summary {
+    @apply flex items-center justify-between gap-4 px-5 py-4 cursor-pointer select-none list-none;
+    @apply font-medium text-base text-cream tracking-tight;
+    @apply transition-colors duration-150;
+  }
+  .prose details summary::-webkit-details-marker { display: none; }
+  .prose details summary::after {
+    content: '';
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    background-color: theme('colors.cream');
+    border-radius: 9999px;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%230a0a0a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M5 7.5l5 5 5-5'/%3E%3C/svg%3E");
+    mask-size: cover;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%230a0a0a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M5 7.5l5 5 5-5'/%3E%3C/svg%3E");
+    -webkit-mask-size: cover;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .prose details[open] summary::after { transform: rotate(180deg); }
+  .prose details > *:not(summary) {
+    @apply px-5 pb-5 pt-3 font-body font-light text-sm text-n-400 leading-relaxed;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
+/* Custom thin scrollbar (GLIDE-style) */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #262626; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #404040; }
+
+/* Atelier widget — icône panier dans le header (GLIDE dark) */
+[data-atelier-header-icon] {
+  color: #A3A3A3 !important;
+  margin-left: 0 !important;
+  transition: color 0.2s ease;
+}
+[data-atelier-header-icon]:hover {
+  color: #F4F4F7 !important;
+}
+[data-atelier-header-badge] {
+  background: #F4F4F7 !important;
+  color: #0A0A0A !important;
+}

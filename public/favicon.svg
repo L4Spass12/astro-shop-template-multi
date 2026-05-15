@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="BuddyPad">
+  <rect width="100" height="100" rx="22" fill="#0A0A0A"/>
+  <!--
+    Lettre "B" tracée en path (indépendant des polices système),
+    optimisée pour rester lisible jusqu'à 16px.
+  -->
+  <path
+    fill="#FFFFFF"
+    fill-rule="evenodd"
+    d="M30 22 L30 78 L56 78 Q72 78 72 64.5 Q72 55 63 51.5 Q70 48 70 39.5 Q70 22 54 22 Z
+       M40 30 L52 30 Q60 30 60 38.5 Q60 47 52 47 L40 47 Z
+       M40 55 L54 55 Q62 55 62 63.5 Q62 70 54 70 L40 70 Z"
+  />
+</svg>

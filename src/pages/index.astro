@@ -1,0 +1,608 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BlogPreview from '../components/BlogPreview.astro';
+import Icon from '../components/Icon.astro';
+import siteConfig from '../../site.config.mjs';
+import { getCollection } from 'astro:content';
+import { inlineMd } from '../lib/inline-md';
+import { parseEntrySlug } from '../lib/i18n';
+import { unsplashSrcset } from '../lib/image';
+
+// ─── Données ──────────────────────────────────────────────────────────────
+const allPosts = await getCollection('blog');
+// Homepage FR : on ne montre que les articles FR (les EN/DE remontaient
+// dans la liste "Articles récents" car getCollection ramène toutes les
+// locales confondues).
+const recentPosts = allPosts
+  .filter(p => parseEntrySlug(p.slug).lang === 'fr')
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const allProducts = await getCollection('products');
+// Homepage FR : produits FR uniquement, hors internes/tests (catégorie vide).
+const sortedProducts = allProducts
+  .filter(p => parseEntrySlug(p.slug).lang === 'fr')
+  .filter(p => (p.data.categories ?? []).length > 0)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// 8 produits "vedettes" : d'abord ceux marqués featured, puis les plus récents
+const featuredProducts = [
+  ...sortedProducts.filter(p => p.data.featured),
+  ...sortedProducts.filter(p => !p.data.featured),
+].slice(0, 8);
+
+// Produits par catégorie (TOUS les produits, pas juste quelques-uns)
+function byCategory(slug: string) {
+  return sortedProducts.filter(p => (p.data.categories || []).includes(slug));
+}
+
+// Décor thématique par catégorie : glows colorés plus marqués
+const categoryRows = [
+  {
+    slug: 'tapis-de-souris-manga-anime', label: 'Manga / Anime',
+    products: byCategory('tapis-de-souris-manga-anime'),
+    glow1: 'rgba(255, 92, 122, 0.18)',    // rouge-rose sakura
+    glow2: 'rgba(255, 140, 80, 0.12)',    // ambre soleil couchant
+  },
+  {
+    slug: 'tapis-de-souris-gaming', label: 'Gaming',
+    products: byCategory('tapis-de-souris-gaming'),
+    glow1: 'rgba(0, 200, 255, 0.16)',     // cyan tech
+    glow2: 'rgba(59, 91, 255, 0.14)',     // bleu électrique
+  },
+  {
+    slug: 'tapis-de-souris-fantasy', label: 'Fantasy',
+    products: byCategory('tapis-de-souris-fantasy'),
+    glow1: 'rgba(155, 92, 255, 0.20)',    // violet magique
+    glow2: 'rgba(196, 120, 255, 0.14)',   // magenta profond
+  },
+  {
+    slug: 'tapis-de-souris-girly', label: 'Girly',
+    products: byCategory('tapis-de-souris-girly'),
+    glow1: 'rgba(255, 120, 180, 0.22)',   // rose bonbon
+    glow2: 'rgba(255, 180, 210, 0.15)',   // rose poudré
+  },
+  {
+    slug: 'tapis-de-souris-minimaliste', label: 'Minimaliste',
+    products: byCategory('tapis-de-souris-minimaliste'),
+    glow1: 'rgba(200, 200, 220, 0.10)',   // blanc cassé
+    glow2: 'rgba(140, 140, 160, 0.06)',   // gris acier
+  },
+].filter(row => row.products.length > 0);
+
+const testimonials = [
+  { name: 'Tom Duclk',    text: "Je joue plusieurs heures d'affilée et je ressentais souvent de l'inconfort avec mes anciens tapis. Celui-ci est doux, stable et très agréable, même sur de longues sessions." },
+  { name: 'Niamh Oxley',  text: "Très facile à nettoyer, aucune trace même après plusieurs semaines d'utilisation. Un simple coup de chiffon suffit pour qu'il reste comme neuf." },
+  { name: 'Mary Green',   text: "Le tapis personnalisé est exactement fidèle à l'image que j'ai fournie. Les couleurs sont nettes, le rendu parfait et la qualité vraiment au top. Très satisfait du résultat." },
+  { name: 'Pierre L.',    text: "Designs uniques et magnifiques, le rendu est superbe. Très belle qualité visuelle." },
+];
+
+const faqs = [
+  { q: 'Comment choisir le meilleur tapis de souris pour votre setup ?',
+    a: "Le choix de votre tapis de souris dépend essentiellement de votre usage. Pour les joueurs compétitifs (FPS, MOBA), nous recommandons nos tapis de souris gamer avec une surface « Speed » ou « Control », optimisée pour la précision des capteurs optiques et laser. Pour le télétravail ou le bureau, privilégiez le confort et l'esthétique. Nos modèles offrent une glisse douce qui réduit la fatigue du poignet, tout en habillant votre espace de travail avec des designs uniques." },
+  { q: 'Pourquoi opter pour un tapis de souris XXL (Deskmat) ?',
+    a: "Le tapis de souris XXL, aussi appelé Deskmat, est devenu la nouvelle norme. Contrairement au format standard carré, le grand format (900×400 mm ou plus) couvre l'intégralité de votre bureau. Il accueille à la fois votre clavier et votre souris pour une stabilité totale, protège la surface de votre bureau contre les rayures, et unifie visuellement votre setup gaming ou bureautique. Plus besoin de repositionner votre souris en plein jeu !" },
+  { q: 'Matériaux durables, base antidérapante et bords cousus : que faut-il vérifier ?',
+    a: "La qualité d'un tapis se juge sur la durée. Tous nos produits sont conçus avec une base en caoutchouc antidérapante qui assure une adhérence parfaite sur le bureau, même lors de mouvements brusques. La surface en tissu micro-tissé assure une glisse fluide, tandis que les bords cousus renforcés empêchent l'effilochage sur le long terme. La majorité de nos tapis sont résistants à l'eau et lavables, garantissant une hygiène parfaite pour votre espace." },
+  { q: 'Les tapis RGB améliorent-ils les performances ?',
+    a: "Non, techniquement le RGB n'améliore pas la précision ni la vitesse. Mais c'est un vrai plus esthétique pour un setup gaming, et certains modèles intègrent un hub USB ou une recharge sans fil pour la souris - là, ça devient pratique." },
+  { q: 'Comment nettoyer un tapis de souris ?',
+    a: "À la main avec de l'eau tiède et un peu de savon doux, en frottant délicatement avec une éponge. Rincez abondamment et laissez sécher à plat, à l'air libre (jamais au sèche-cheveux ni au soleil direct). Évitez la machine à laver sur les modèles avec base caoutchouc cousue." },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+const formatPrice = (n: number) => new Intl.NumberFormat('fr-FR', {
+  style: 'currency', currency: siteConfig.shop.currency,
+}).format(n);
+
+const displayPrice = (d: any) =>
+  d.priceRange && d.priceRange.min !== d.priceRange.max
+    ? `Dès ${formatPrice(d.priceRange.min)}`
+    : formatPrice(d.price);
+
+// ─── Schemas JSON-LD ──────────────────────────────────────────────────────
+const SITE_URL = siteConfig.url;
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: siteConfig.name,
+  description: siteConfig.description,
+  url: SITE_URL,
+  inLanguage: 'fr-FR',
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(f => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+
+<BaseLayout
+  title={`${siteConfig.name} | La boutique référence du tapis de souris`}
+  description="Tapis de souris XXL et personnalisés pour le gaming, le télétravail et la création : précision maximale, confort et designs uniques pour sublimer votre bureau."
+  jsonLd={[websiteSchema, faqSchema]}
+  preloadImages={[
+    { href: '/images/home/hero-desktop-800w.webp',
+      imagesrcset: '/images/home/hero-mobile.webp 1080w, /images/home/hero-desktop-800w.webp 800w, /images/home/hero-desktop.webp 2560w',
+      imagesizes: '100vw' },
+  ]}
+>
+  <!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+  <!-- Structure simplifiée pour LCP détectable :
+       - L'image hero est un <img> direct de la section (pas de wrapper z-indexé)
+       - Le voile sombre est appliqué via `::after` en CSS pur (pas de div overlay) -->
+  <section class="hero-section relative overflow-hidden min-h-[70vh] md:min-h-[75vh] flex items-center">
+    <!-- Un seul <img> avec srcset (plus simple, LCP-friendly) -->
+    <img
+      src="/images/home/hero-desktop.webp"
+      srcset="/images/home/hero-mobile.webp 1080w, /images/home/hero-desktop-800w.webp 800w, /images/home/hero-desktop.webp 2560w"
+      sizes="100vw"
+      alt="Tapis de souris BuddyPad dans un setup gaming élégant"
+      class="hero-img hero-bg"
+      fetchpriority="high"
+      loading="eager"
+      decoding="async"
+      width="2560"
+      height="1086"
+    />
+
+    <div class="relative max-w-7xl mx-auto px-6 py-20 md:py-24 w-full flex flex-col justify-center">
+      <span class="tag tag-status mb-6 self-start">Nouvelle collection 2026</span>
+
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-cream mb-4 leading-[1.1] max-w-2xl">
+        Tapis de souris Gamer<br class="hidden md:block" /> XXL &amp; Ergonomiques
+      </h1>
+
+      <p class="text-base md:text-lg text-n-300 mb-8 max-w-xl font-light">
+        Pensé pour le confort. Conçu pour durer.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-start gap-3">
+        <a href="/tapis-de-souris" class="btn-primary inline-flex items-center gap-2">
+          Découvrir
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <a href="/product/tapis-de-souris-personnalise" class="btn-outline">Personnaliser mon tapis</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ PRODUITS EN VEDETTES ═══════════════════════════ -->
+  {featuredProducts.length > 0 && (
+    <section class="relative py-20 md:py-24 px-6 border-t border-white/[0.04] overflow-hidden">
+      <!-- Accent décoratif subtil -->
+      <div class="absolute top-0 right-0 w-[600px] h-[300px] bg-white/[0.025] blur-[120px] rounded-[100%] pointer-events-none"></div>
+      <div class="relative max-w-7xl mx-auto">
+        <div class="flex items-end justify-between mb-10 gap-6">
+          <div>
+            <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-2 block">Sélection</span>
+            <h2 class="text-2xl md:text-3xl font-medium tracking-tight text-cream">Produits en vedette</h2>
+          </div>
+          <a href="/tapis-de-souris" class="hidden md:inline-flex items-center gap-1 text-sm text-n-400 hover:text-cream transition-colors whitespace-nowrap">
+            Voir tout
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {featuredProducts.map(product => (
+            <a href={`/product/${product.slug}`} class="group block">
+              <div class="relative aspect-[4/3] rounded-2xl overflow-hidden bg-panel border border-white/[0.05] mb-3">
+                <img
+                  src={product.data.image}
+                  srcset={unsplashSrcset(product.data.image)}
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  alt={product.data.imageAlt ?? product.data.name}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  width="800" height="600" loading="lazy" decoding="async"
+                />
+                {product.data.compareAtPrice && (
+                  <span class="absolute top-3 left-3 bg-cream text-dark text-[10px] font-medium px-2 py-1 rounded-sm uppercase tracking-wider">
+                    -{Math.round((1 - product.data.price / product.data.compareAtPrice) * 100)}%
+                  </span>
+                )}
+              </div>
+              <h3 class="text-sm font-medium text-cream tracking-tight leading-snug line-clamp-2 mb-1 group-hover:underline underline-offset-4">
+                {product.data.name}
+              </h3>
+              <div class="flex items-baseline gap-2 text-xs">
+                <span class="text-cream font-medium">{displayPrice(product.data)}</span>
+                {product.data.compareAtPrice && (
+                  <span class="text-n-500 line-through font-light">{formatPrice(product.data.compareAtPrice)}</span>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ═══════════════════════════ PERSONNALISATION ═══════════════════════════ -->
+  <section class="relative py-20 md:py-24 px-6 border-t border-white/[0.04] bg-gradient-to-br from-[#1a1008] via-panel to-dark overflow-hidden below-fold-defer">
+    <!-- Accents chauds (amber/coral) pour la vibe créative -->
+    <div class="absolute top-1/2 left-10 -translate-y-1/2 w-[400px] h-[400px] bg-[#ff9b5c]/[0.05] blur-[140px] rounded-full pointer-events-none"></div>
+    <div class="absolute bottom-0 right-20 w-[500px] h-[250px] bg-[#ff5c7a]/[0.04] blur-[140px] rounded-full pointer-events-none"></div>
+    <div class="relative max-w-5xl mx-auto text-center">
+      <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-4 block">Sur-mesure</span>
+      <h2 class="text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-cream mb-5 leading-[1.1]">
+        Votre image, votre tapis.
+      </h2>
+      <p class="text-base md:text-lg text-n-400 font-light max-w-xl mx-auto mb-10 leading-relaxed">
+        Téléchargez votre visuel, choisissez le format, recevez un tapis unique imprimé pour vous.
+      </p>
+      <a href="/product/tapis-de-souris-personnalise" class="btn-primary inline-flex items-center gap-2">
+        Je personnalise
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ CATÉGORIES PRODUITS (sliders) ═══════════════════════════ -->
+  {categoryRows.map((row, idx) => {
+    const bgClass = idx % 3 === 0 ? '' : idx % 3 === 1 ? 'bg-panel' : 'bg-teal';
+    return (
+    <section class={`relative py-16 md:py-20 border-t border-white/[0.04] overflow-hidden below-fold-defer ${bgClass}`}>
+      <!-- Glows thématiques (desktop : larges et visibles / mobile : réduits via CSS) -->
+      <div class="slider-glow slider-glow-1" style={`background: ${row.glow1}`}></div>
+      <div class="slider-glow slider-glow-2" style={`background: ${row.glow2}`}></div>
+
+      <div class="relative max-w-7xl mx-auto px-6">
+        <div class="flex items-end justify-between mb-6 md:mb-8 gap-4">
+          <div>
+            <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-2 block">Collection</span>
+            <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream">{row.label}</h2>
+          </div>
+          <a href={`/product-category/${row.slug}`} class="inline-flex items-center gap-1.5 text-xs md:text-sm text-n-400 hover:text-cream transition-colors whitespace-nowrap">
+            Voir tout ({row.products.length})
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Slider full-width : track s'étend jusqu'au bord de l'écran, cards coupées à l'edge -->
+      <div class="product-slider relative" data-slider>
+        <div class="slider-track flex gap-3 md:gap-4 lg:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 pl-6 md:pl-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] pr-6">
+          {row.products.map(p => (
+            <a
+              href={`/product/${p.slug}`}
+              class="slider-card group flex-none w-[72vw] sm:w-[45vw] md:w-[30vw] lg:w-[22vw] xl:w-[310px] snap-start block"
+            >
+              <div class="relative aspect-[4/3] rounded-2xl overflow-hidden bg-panel border border-white/[0.05] mb-3">
+                <img
+                  src={p.data.image}
+                  srcset={unsplashSrcset(p.data.image)}
+                  sizes="(max-width: 640px) 72vw, (max-width: 768px) 45vw, (max-width: 1024px) 32vw, 300px"
+                  alt={p.data.imageAlt ?? p.data.name}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  width="800" height="600" loading="lazy" decoding="async"
+                />
+                {p.data.compareAtPrice && (
+                  <span class="absolute top-3 left-3 bg-cream text-dark text-[10px] font-medium px-2 py-1 rounded-sm uppercase tracking-wider">
+                    -{Math.round((1 - p.data.price / p.data.compareAtPrice) * 100)}%
+                  </span>
+                )}
+              </div>
+              <h3 class="text-sm font-medium text-cream tracking-tight leading-snug line-clamp-2 mb-1 group-hover:underline underline-offset-4">
+                {p.data.name}
+              </h3>
+              <div class="flex items-baseline gap-2 text-xs">
+                <span class="text-cream font-medium">{displayPrice(p.data)}</span>
+                {p.data.compareAtPrice && (
+                  <span class="text-n-500 line-through font-light">{formatPrice(p.data.compareAtPrice)}</span>
+                )}
+              </div>
+            </a>
+          ))}
+          <!-- Spacer final pour que la dernière card respire -->
+          <div class="flex-none w-2" aria-hidden="true"></div>
+        </div>
+
+        <!-- Boutons flèches (desktop) : wrapper limité à max-w-7xl pour qu'ils s'alignent au contenu -->
+        <div class="pointer-events-none absolute inset-0 max-w-7xl mx-auto hidden md:block px-6">
+          <button
+            type="button"
+            data-scroll="prev"
+            class="pointer-events-auto absolute left-2 top-[38%] -translate-y-1/2 w-10 h-10 rounded-full bg-dark/90 border border-white/[0.15] backdrop-blur flex items-center justify-center text-cream hover:bg-dark hover:border-white/30 disabled:opacity-0 disabled:pointer-events-none transition-all shadow-lg"
+            aria-label="Produits précédents"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button
+            type="button"
+            data-scroll="next"
+            class="pointer-events-auto absolute right-2 top-[38%] -translate-y-1/2 w-10 h-10 rounded-full bg-dark/90 border border-white/[0.15] backdrop-blur flex items-center justify-center text-cream hover:bg-dark hover:border-white/30 disabled:opacity-0 disabled:pointer-events-none transition-all shadow-lg"
+            aria-label="Produits suivants"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <!-- Indicateur mobile : petit texte "← swipe →" sous la 1ère section -->
+        {idx === 0 && (
+          <div class="md:hidden px-6 mt-2 text-center">
+            <span class="inline-flex items-center gap-2 text-[10px] text-n-500 font-light uppercase tracking-widest">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              Glissez pour explorer
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+          </div>
+        )}
+      </div>
+    </section>
+    );
+  })}
+
+  <style>
+    /* ─── HERO : structure plate pour LCP détectable ───────────────────
+       L'image est un <img> direct de la section.
+       Le voile sombre est un ::after en CSS (pas un div overlay dans le DOM
+       → Lighthouse voit l'image comme non couverte). */
+    .hero-section { isolation: isolate; }
+    /* Image hero : absolute fill de la section, z-index 0 */
+    .hero-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      z-index: 0;
+    }
+
+    /* ─── content-visibility: auto pour sections below-fold ───────
+       Skip layout/paint des sections hors viewport au load → LCP
+       committé plus rapidement par Lighthouse. contain-intrinsic-size
+       réserve l'espace pour éviter les sauts de scroll. */
+    .below-fold-defer {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 800px;
+    }
+    /* Voile sombre en ::after : z-index 1 pour passer SOUS le contenu texte */
+    .hero-section::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, rgba(10,10,15,0.88), rgba(10,10,15,0.6) 55%, rgba(10,10,15,0.3));
+      pointer-events: none;
+      z-index: 1;
+    }
+    /* Contenu (tag + h1 + boutons) : z-index 2, AU-DESSUS du voile */
+    .hero-section > .relative {
+      z-index: 2;
+    }
+
+    /* Scrollbar masquée mais scroll/swipe actif */
+    .product-slider .slider-track {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .product-slider .slider-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ─── Glows thématiques par catégorie ─────────────────────────────
+       Desktop : larges halos bien visibles
+       Mobile : réduits en taille + intensité (positions ajustées pour rester
+       en arrière-plan sans saturer l'écran étroit) */
+    .slider-glow {
+      position: absolute;
+      border-radius: 100%;
+      pointer-events: none;
+      filter: blur(120px);
+    }
+    .slider-glow-1 {
+      top: -5rem;
+      left: -5rem;
+      width: 700px;
+      height: 500px;
+    }
+    .slider-glow-2 {
+      bottom: -5rem;
+      right: -5rem;
+      width: 600px;
+      height: 400px;
+      filter: blur(110px);
+    }
+    @media (max-width: 767px) {
+      .slider-glow-1 {
+        width: 340px;
+        height: 220px;
+        top: -4rem;
+        left: -6rem;
+        opacity: 0.55;
+        filter: blur(80px);
+      }
+      .slider-glow-2 {
+        width: 300px;
+        height: 200px;
+        bottom: -4rem;
+        right: -6rem;
+        opacity: 0.55;
+        filter: blur(80px);
+      }
+    }
+  </style>
+
+  <script is:inline>
+    // Contrôle des boutons flèches des sliders produits (desktop).
+    // Différé via requestIdleCallback pour libérer le main thread au load
+    // (laisse Lighthouse committer le LCP avant parse/exec de ce JS).
+    (function() {
+      function initSliders() {
+        document.querySelectorAll('[data-slider]').forEach(slider => {
+          const track = slider.querySelector('.slider-track');
+          const prev = slider.querySelector('[data-scroll="prev"]');
+          const next = slider.querySelector('[data-scroll="next"]');
+          if (!track) return;
+
+          function scrollBy(dir) {
+            const card = track.querySelector('.slider-card');
+            if (!card) return;
+            const cardWidth = card.getBoundingClientRect().width + 20;
+            track.scrollBy({ left: cardWidth * 2 * dir, behavior: 'smooth' });
+          }
+          prev?.addEventListener('click', () => scrollBy(-1));
+          next?.addEventListener('click', () => scrollBy(1));
+
+          function update() {
+            if (!prev || !next) return;
+            prev.disabled = track.scrollLeft <= 1;
+            next.disabled = track.scrollLeft >= track.scrollWidth - track.clientWidth - 1;
+          }
+          track.addEventListener('scroll', update, { passive: true });
+          window.addEventListener('resize', update);
+          requestAnimationFrame(update);
+        });
+      }
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(initSliders, { timeout: 2000 });
+      } else {
+        setTimeout(initSliders, 0);
+      }
+    })();
+  </script>
+
+  <!-- ═══════════════════════════ AVIS CLIENTS ═══════════════════════════ -->
+  <section class="relative py-20 md:py-24 px-6 border-t border-white/[0.04] bg-panel overflow-hidden below-fold-defer">
+    <!-- Accent doré/cream pour écho aux étoiles des avis -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#ffd98c]/[0.04] blur-[140px] rounded-[100%] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-20 w-[400px] h-[200px] bg-[#fff3c4]/[0.03] blur-[120px] rounded-full pointer-events-none"></div>
+    <div class="relative max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-3 block">Témoignages</span>
+        <h2 class="text-2xl md:text-3xl font-medium tracking-tight text-cream">
+          Avis et retours clients
+        </h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+        {testimonials.map(t => (
+          <blockquote class="rounded-2xl border border-white/[0.08] bg-dark p-6 md:p-8 relative">
+            <div class="flex gap-0.5 mb-4 text-cream">
+              {[0,1,2,3,4].map(() => (
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>
+              ))}
+            </div>
+            <p class="text-sm md:text-base text-n-300 font-light leading-relaxed mb-5">
+              « {t.text} »
+            </p>
+            <footer class="text-xs text-n-500 font-medium uppercase tracking-widest">- {t.name}</footer>
+          </blockquote>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ PERFORMANCE & DURABILITÉ ═══════════════════════════ -->
+  <section class="relative py-20 md:py-24 px-6 border-t border-white/[0.04] bg-gradient-to-b from-dark via-[#08101a] to-panel/50 overflow-hidden below-fold-defer">
+    <!-- Accent tech / gaming (bleu profond) -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#3b5bff]/[0.05] blur-[140px] rounded-[100%] pointer-events-none"></div>
+    <div class="relative max-w-4xl mx-auto text-center">
+      <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-3 block">Performance &amp; durabilité</span>
+      <h2 class="text-2xl md:text-3xl font-medium tracking-tight text-cream mb-4">
+        Fabrication haute précision
+      </h2>
+      <p class="text-sm md:text-base text-n-400 font-light leading-relaxed max-w-2xl mx-auto">
+        Nos tapis de souris offrent une qualité supérieure, une finition parfaite et une résistance optimale.
+        Pensés pour les utilisateurs exigeants, ils allient esthétique, précision et longévité.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ SECTIONS GUIDES ═══════════════════════════ -->
+  <section class="relative py-16 md:py-20 px-6 border-t border-white/[0.04] bg-panel overflow-hidden below-fold-defer">
+    <div class="absolute top-1/2 right-0 w-[400px] h-[400px] bg-white/[0.02] blur-[140px] rounded-full pointer-events-none"></div>
+    <div class="relative max-w-4xl mx-auto space-y-14">
+      <article>
+        <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream mb-4 leading-tight">
+          Comment choisir le meilleur tapis de souris pour votre setup
+        </h2>
+        <div class="prose prose-invert max-w-none prose-p:font-light prose-p:text-n-400 prose-p:leading-relaxed prose-p:text-sm md:prose-p:text-base prose-strong:text-cream prose-strong:font-medium prose-a:text-cream prose-a:underline prose-a:underline-offset-4 prose-a:decoration-white/30 hover:prose-a:decoration-cream">
+          <p>
+            Le choix de votre <strong>tapis de souris</strong> dépend essentiellement de votre usage. Pour les joueurs compétitifs (FPS, MOBA), nous recommandons nos <a href="/product-category/tapis-de-souris-gaming">tapis de souris gamer</a> avec une surface « Speed » ou « Control », optimisée pour la précision des capteurs optiques et laser.
+          </p>
+          <p>
+            Pour le télétravail ou le bureau, privilégiez le confort et l'esthétique. Nos modèles offrent une glisse douce qui réduit la fatigue du poignet, tout en habillant votre espace de travail avec des designs uniques.
+          </p>
+        </div>
+      </article>
+
+      <article>
+        <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream mb-4 leading-tight">
+          Pourquoi opter pour un tapis de souris XXL (Deskmat) ?
+        </h2>
+        <div class="prose prose-invert max-w-none prose-p:font-light prose-p:text-n-400 prose-p:leading-relaxed prose-p:text-sm md:prose-p:text-base prose-strong:text-cream prose-strong:font-medium prose-a:text-cream prose-a:underline prose-a:underline-offset-4 prose-a:decoration-white/30 hover:prose-a:decoration-cream">
+          <p>
+            Le <a href="/product-category/tapis-de-souris-xxl">tapis de souris XXL</a>, aussi appelé <strong>Deskmat</strong>, est devenu la nouvelle norme. Contrairement au format standard carré, le grand format (900×400 mm ou plus) couvre l'intégralité de votre bureau.
+          </p>
+          <p>
+            Ses avantages sont nombreux : il accueille à la fois votre clavier et votre souris pour une stabilité totale, protège la surface de votre bureau contre les rayures, et unifie visuellement votre <strong>setup gaming</strong> ou bureautique. Plus besoin de repositionner votre souris en plein jeu !
+          </p>
+        </div>
+      </article>
+
+      <article>
+        <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream mb-4 leading-tight">
+          Matériaux durables, base antidérapante et bords cousus
+        </h2>
+        <div class="prose prose-invert max-w-none prose-p:font-light prose-p:text-n-400 prose-p:leading-relaxed prose-p:text-sm md:prose-p:text-base prose-strong:text-cream prose-strong:font-medium">
+          <p>
+            La qualité d'un tapis se juge sur la durée. Tous nos produits sont conçus avec une <strong>base en caoutchouc antidérapante</strong> qui assure une adhérence parfaite sur le bureau, même lors de mouvements brusques.
+          </p>
+          <p>
+            La surface en tissu micro-tissé assure une glisse fluide, tandis que les <strong>bords cousus renforcés</strong> empêchent l'effilochage sur le long terme. De plus, la majorité de nos tapis sont résistants à l'eau et <strong>lavables</strong>, garantissant une hygiène parfaite pour votre espace.
+          </p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ BLOG PREVIEW ═══════════════════════════ -->
+  {recentPosts.length > 0 && <div class="below-fold-defer"><BlogPreview posts={recentPosts} lang="fr" /></div>}
+
+  <!-- ═══════════════════════════ FAQ ═══════════════════════════ -->
+  <section class="py-20 md:py-24 px-6 border-t border-white/[0.04] bg-panel below-fold-defer">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-12">
+        <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-3 block">FAQ</span>
+        <h2 class="text-2xl md:text-3xl font-medium tracking-tight text-cream">
+          Questions fréquentes
+        </h2>
+      </div>
+      <div class="space-y-3">
+        {faqs.map(f => (
+          <details class="group rounded-2xl border border-white/[0.08] bg-dark open:border-white/20 transition-colors">
+            <summary class="flex items-start justify-between gap-4 px-6 py-5 cursor-pointer list-none font-medium text-base text-cream tracking-tight">
+              <span class="flex-1" set:html={inlineMd(f.q)} />
+              <span class="text-n-400 text-xl leading-none transition-transform group-open:rotate-45 shrink-0">+</span>
+            </summary>
+            <p class="px-6 pb-5 pt-1 font-light text-sm text-n-400 leading-relaxed [&_strong]:text-cream [&_strong]:font-medium [&_a]:text-cream [&_a]:underline [&_a]:underline-offset-4" set:html={inlineMd(f.a)} />
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ CTA FINAL ═══════════════════════════ -->
+  <section class="relative py-24 px-6 overflow-hidden border-t border-white/[0.04] below-fold-defer">
+    <div class="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-white/[0.04] blur-[120px] rounded-[100%] pointer-events-none"></div>
+    <div class="relative max-w-3xl mx-auto text-center">
+      <h2 class="text-3xl md:text-4xl font-medium tracking-tight text-cream mb-4 leading-[1.1]">
+        Prêt à upgrader votre setup ?
+      </h2>
+      <p class="text-base text-n-400 mb-10 max-w-xl mx-auto font-light">
+        Explorez la boutique pour trouver la surface qui correspond à votre style, ou créez votre propre tapis unique.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="/tapis-de-souris" class="w-full sm:w-auto btn-primary">Voir la boutique</a>
+        <a href="/blog" class="w-full sm:w-auto btn-outline">Lire le blog</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

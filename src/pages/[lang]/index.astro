@@ -1,0 +1,501 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPreview from '../../components/BlogPreview.astro';
+import siteConfig from '../../../site.config.mjs';
+import { getCollection } from 'astro:content';
+import { inlineMd } from '../../lib/inline-md';
+import { parseEntrySlug, t, localePrefix, ACTIVE_LOCALES, localeMeta } from '../../lib/i18n';
+import { unsplashSrcset } from '../../lib/image';
+
+export async function getStaticPaths() {
+  return ACTIVE_LOCALES
+    .filter(l => l !== siteConfig.i18n.defaultLocale)
+    .map(lang => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: 'fr' | 'en' | 'de' };
+const lp = localePrefix(lang);
+const url = (path: string) => `${lp}${path}`;
+
+// ─── Données filtrées par locale ─────────────────────────────────────────
+const allPosts = await getCollection('blog');
+const recentPosts = allPosts
+  .filter(p => parseEntrySlug(p.slug).lang === lang)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const allProducts = await getCollection('products');
+const localeProducts = allProducts
+  .filter(p => parseEntrySlug(p.slug).lang === lang)
+  .filter(p => (p.data.categories ?? []).length > 0)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const featuredProducts = [
+  ...localeProducts.filter(p => p.data.featured),
+  ...localeProducts.filter(p => !p.data.featured),
+].slice(0, 8);
+
+// Produits par catégorie (mêmes catégories que la home FR — 5 sliders)
+function byCategory(slug: string) {
+  return localeProducts.filter(p => (p.data.categories || []).includes(slug));
+}
+const categoryRows = [
+  {
+    slug: 'tapis-de-souris-manga-anime',
+    label: lang === 'en' ? 'Manga / Anime' : lang === 'de' ? 'Manga / Anime' : 'Manga / Anime',
+    products: byCategory('tapis-de-souris-manga-anime'),
+    glow1: 'rgba(255, 92, 122, 0.18)', glow2: 'rgba(255, 140, 80, 0.12)',
+  },
+  {
+    slug: 'tapis-de-souris-gaming',
+    label: 'Gaming',
+    products: byCategory('tapis-de-souris-gaming'),
+    glow1: 'rgba(0, 200, 255, 0.16)', glow2: 'rgba(59, 91, 255, 0.14)',
+  },
+  {
+    slug: 'tapis-de-souris-fantasy',
+    label: 'Fantasy',
+    products: byCategory('tapis-de-souris-fantasy'),
+    glow1: 'rgba(155, 92, 255, 0.20)', glow2: 'rgba(196, 120, 255, 0.14)',
+  },
+  {
+    slug: 'tapis-de-souris-girly',
+    label: 'Girly',
+    products: byCategory('tapis-de-souris-girly'),
+    glow1: 'rgba(255, 120, 180, 0.22)', glow2: 'rgba(255, 180, 210, 0.15)',
+  },
+  {
+    slug: 'tapis-de-souris-minimaliste',
+    label: lang === 'en' ? 'Minimalist' : lang === 'de' ? 'Minimalistisch' : 'Minimaliste',
+    products: byCategory('tapis-de-souris-minimaliste'),
+    glow1: 'rgba(200, 200, 220, 0.10)', glow2: 'rgba(140, 140, 160, 0.06)',
+  },
+].filter(row => row.products.length > 0);
+
+// Témoignages localisés (mêmes témoignages traduits par marché)
+const testimonialsByLang = {
+  en: [
+    { name: 'Tom Duclk',   text: "I play for hours on end and used to feel discomfort with my old pads. This one is soft, stable and very pleasant, even during long sessions." },
+    { name: 'Niamh Oxley', text: "Very easy to clean, no marks even after several weeks of use. A simple wipe is enough to keep it like new." },
+    { name: 'Mary Green',  text: "The custom pad matches the image I provided exactly. Colors are sharp, the rendering is perfect and the quality is truly top-notch. Very satisfied." },
+    { name: 'Pierre L.',   text: "Unique and beautiful designs, the result is stunning. Excellent visual quality." },
+  ],
+  de: [
+    { name: 'Tom Duclk',   text: "Ich spiele stundenlang am Stück und hatte mit meinen alten Pads oft Unbehagen. Dieses ist weich, stabil und sehr angenehm, auch bei langen Sessions." },
+    { name: 'Niamh Oxley', text: "Sehr einfach zu reinigen, keine Spuren auch nach mehreren Wochen Nutzung. Ein einfaches Wischen reicht, damit es wie neu bleibt." },
+    { name: 'Mary Green',  text: "Das personalisierte Pad entspricht genau dem Bild, das ich geliefert habe. Die Farben sind scharf, das Ergebnis perfekt und die Qualität wirklich top. Sehr zufrieden." },
+    { name: 'Pierre L.',   text: "Einzigartige und wunderschöne Designs, das Ergebnis ist großartig. Exzellente visuelle Qualität." },
+  ],
+};
+const testimonials = testimonialsByLang[lang] ?? testimonialsByLang.en;
+
+// FAQs localisées (mêmes 5 questions traduites)
+const faqsByLang = {
+  en: [
+    { q: 'How to choose the best mouse pad for your setup?',
+      a: "Your mouse pad choice depends mainly on your use. For competitive players (FPS, MOBA), we recommend our gaming mouse pads with a Speed or Control surface, optimized for the precision of optical and laser sensors. For remote work or office use, prioritize comfort and aesthetics. Our models offer a smooth glide that reduces wrist fatigue, while dressing up your workspace with unique designs." },
+    { q: 'Why opt for an XXL mouse pad (Deskmat)?',
+      a: "The XXL mouse pad, also called Deskmat, has become the new standard. Unlike the small square format, the large format (900×400 mm / 35×16 in or more) covers your entire desk. It fits both your keyboard and mouse for total stability, protects the desk surface from scratches, and visually unifies your gaming or office setup. No more repositioning your mouse mid-game!" },
+    { q: 'Durable materials, non-slip base and stitched edges: what to check?',
+      a: "Pad quality is judged over time. All our products are designed with a non-slip natural rubber base that grips the desk perfectly, even during sudden movements. The micro-woven cloth surface ensures smooth glide, while reinforced stitched edges prevent fraying long-term. Most of our pads are water-resistant and machine-washable, guaranteeing perfect hygiene." },
+    { q: 'Do RGB pads improve performance?',
+      a: "No, technically RGB doesn't improve precision or speed. But it's a real aesthetic plus for a gaming setup, and some models integrate a USB hub or wireless charging for the mouse — that's where it becomes practical." },
+    { q: 'How to clean a mouse pad?',
+      a: "By hand with lukewarm water and a bit of mild soap, gently scrubbing with a sponge. Rinse thoroughly and let it air-dry flat (never with a hairdryer or in direct sunlight). Avoid the washing machine on models with a stitched rubber base." },
+  ],
+  de: [
+    { q: 'Wie wählst du das beste Mauspad für dein Setup?',
+      a: "Die Wahl deines Mauspads hängt vor allem von deiner Nutzung ab. Für kompetitive Spieler (FPS, MOBA) empfehlen wir unsere Gaming-Mauspads mit Speed- oder Control-Oberfläche, optimiert für die Präzision optischer und Laser-Sensoren. Fürs Homeoffice oder Büro bevorzug Komfort und Ästhetik. Unsere Modelle bieten ein sanftes Gleiten, das die Handgelenkermüdung reduziert, und schmücken deinen Arbeitsplatz mit einzigartigen Designs." },
+    { q: 'Warum ein XXL-Mauspad (Deskmat) wählen?',
+      a: "Das XXL-Mauspad, auch Deskmat genannt, ist die neue Norm geworden. Im Gegensatz zum quadratischen Standardformat bedeckt das große Format (900×400 mm oder mehr) deinen gesamten Schreibtisch. Es nimmt sowohl deine Tastatur als auch deine Maus für totale Stabilität auf, schützt die Schreibtischoberfläche vor Kratzern und vereint visuell dein Gaming- oder Büro-Setup. Kein Repositionieren der Maus mehr mitten im Spiel!" },
+    { q: 'Langlebige Materialien, rutschfeste Basis und vernähte Ränder: was prüfen?',
+      a: "Die Qualität eines Pads beurteilt sich über die Zeit. Alle unsere Produkte sind mit einer rutschfesten Naturkautschuk-Basis konzipiert, die perfekt am Schreibtisch haftet, auch bei abrupten Bewegungen. Die mikro-gewebte Stoffoberfläche sichert ein sanftes Gleiten, während verstärkte vernähte Ränder das Ausfransen langfristig verhindern. Die meisten unserer Pads sind wasserbeständig und maschinenwaschbar." },
+    { q: 'Verbessern RGB-Pads die Performance?',
+      a: "Nein, technisch verbessert RGB weder Präzision noch Geschwindigkeit. Aber es ist ein echter ästhetischer Plus für ein Gaming-Setup, und einige Modelle integrieren einen USB-Hub oder kabelloses Laden für die Maus — da wird es praktisch." },
+    { q: 'Wie reinigt man ein Mauspad?',
+      a: "Per Hand mit lauwarmem Wasser und etwas milder Seife, sanft mit einem Schwamm reiben. Gründlich spülen und flach an der Luft trocknen lassen (niemals mit Föhn oder in direkter Sonne). Vermeide die Waschmaschine bei Modellen mit vernähter Gummibasis." },
+  ],
+};
+const faqs = faqsByLang[lang] ?? faqsByLang.en;
+
+// Helpers
+const intlLocale = lang === 'en' ? 'en-GB' : lang === 'de' ? 'de-DE' : 'fr-FR';
+const formatPrice = (n: number) => new Intl.NumberFormat(intlLocale, {
+  style: 'currency', currency: localeMeta(lang).currency || 'EUR',
+}).format(n);
+const displayPrice = (d: any) =>
+  d.priceRange && d.priceRange.min !== d.priceRange.max
+    ? `${t('shop.from', lang)} ${formatPrice(d.priceRange.min)}`
+    : formatPrice(d.price);
+
+const productHref = (slug: string) => url('/product/' + parseEntrySlug(slug).slug);
+
+// Sections guides : remplace les placeholders LINK_GAMING / LINK_XXL par les
+// vrais liens préfixés locale.
+function injectLinks(html: string) {
+  return html
+    .replace('LINK_GAMING', url('/product-category/tapis-de-souris-gaming'))
+    .replace('LINK_XXL', url('/product-category/tapis-de-souris-xxl'));
+}
+
+// ─── SEO ─────────────────────────────────────────────────────────────────
+const SITE_URL = siteConfig.url;
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: siteConfig.name,
+  description: siteConfig.description,
+  url: `${SITE_URL}${lp}/`,
+  inLanguage: localeMeta(lang).htmlLang,
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f: { q: string; a: string }) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+
+<BaseLayout
+  title={`${siteConfig.name} | ${t('home.heroTitle', lang)}`}
+  description={t('home.heroSubtitle', lang)}
+  jsonLd={[websiteSchema, faqSchema]}
+>
+  <!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+  <section class="hero-section relative overflow-hidden min-h-[70vh] md:min-h-[75vh] flex items-center">
+    <img
+      src="/images/home/hero-desktop.webp"
+      srcset="/images/home/hero-mobile.webp 1080w, /images/home/hero-desktop-800w.webp 800w, /images/home/hero-desktop.webp 2560w"
+      sizes="100vw"
+      alt={t('home.heroTitle', lang)}
+      class="hero-img hero-bg"
+      fetchpriority="high"
+      loading="eager"
+      decoding="async"
+      width="2560"
+      height="1086"
+    />
+    <div class="relative max-w-7xl mx-auto px-6 py-20 md:py-24 w-full flex flex-col justify-center">
+      <span class="tag tag-status mb-6 self-start">{t('home.heroTag', lang)}</span>
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-cream mb-4 leading-[1.1] max-w-2xl">
+        {t('home.heroTitle', lang)}
+      </h1>
+      <p class="text-base md:text-lg text-n-300 mb-8 max-w-xl font-light">
+        {t('home.heroSubtitle', lang)}
+      </p>
+      <div class="flex flex-col sm:flex-row items-start gap-3">
+        <a href={url('/tapis-de-souris')} class="btn-primary inline-flex items-center gap-2">
+          {t('home.ctaDiscover', lang)}
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <a href={url('/product/tapis-de-souris-personnalise')} class="btn-outline">{t('home.ctaCustomize', lang)}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ PRODUITS EN VEDETTE ═══════════════════════════ -->
+  {featuredProducts.length > 0 && (
+    <section class="relative py-20 md:py-24 px-6 border-t border-white/[0.04] overflow-hidden">
+      <div class="absolute top-0 right-0 w-[600px] h-[300px] bg-white/[0.025] blur-[120px] rounded-[100%] pointer-events-none"></div>
+      <div class="relative max-w-7xl mx-auto">
+        <div class="flex items-end justify-between mb-10 gap-6">
+          <div>
+            <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-2 block">{t('home.featuredLabel', lang)}</span>
+            <h2 class="text-2xl md:text-3xl font-medium tracking-tight text-cream">{t('home.featuredTitle', lang)}</h2>
+          </div>
+          <a href={url('/tapis-de-souris')} class="hidden md:inline-flex items-center gap-1 text-sm text-n-400 hover:text-cream transition-colors whitespace-nowrap">
+            {t('shop.viewAll', lang)}
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {featuredProducts.map(product => (
+            <a href={productHref(product.slug)} class="group block">
+              <div class="relative aspect-[4/3] rounded-2xl overflow-hidden bg-panel border border-white/[0.05] mb-3">
+                <img src={product.data.image} srcset={unsplashSrcset(product.data.image)}
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  alt={product.data.imageAlt ?? product.data.name}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  width="800" height="600" loading="lazy" decoding="async" />
+                {product.data.compareAtPrice && (
+                  <span class="absolute top-3 left-3 bg-cream text-dark text-[10px] font-medium px-2 py-1 rounded-sm uppercase tracking-wider">
+                    -{Math.round((1 - product.data.price / product.data.compareAtPrice) * 100)}%
+                  </span>
+                )}
+              </div>
+              <h3 class="text-sm font-medium text-cream tracking-tight leading-snug line-clamp-2 mb-1 group-hover:underline underline-offset-4">
+                {product.data.name}
+              </h3>
+              <div class="flex items-baseline gap-2 text-xs">
+                <span class="text-cream font-medium">{displayPrice(product.data)}</span>
+                {product.data.compareAtPrice && (
+                  <span class="text-n-500 line-through font-light">{formatPrice(product.data.compareAtPrice)}</span>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ═══════════════════════════ PERSONNALISATION ═══════════════════════════ -->
+  <section class="relative py-20 md:py-24 px-6 border-t border-white/[0.04] bg-gradient-to-br from-[#1a1008] via-panel to-dark overflow-hidden below-fold-defer">
+    <div class="absolute top-1/2 left-10 -translate-y-1/2 w-[400px] h-[400px] bg-[#ff9b5c]/[0.05] blur-[140px] rounded-full pointer-events-none"></div>
+    <div class="absolute bottom-0 right-20 w-[500px] h-[250px] bg-[#ff5c7a]/[0.04] blur-[140px] rounded-full pointer-events-none"></div>
+    <div class="relative max-w-5xl mx-auto text-center">
+      <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-4 block">{t('home.customLabel', lang)}</span>
+      <h2 class="text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-cream mb-5 leading-[1.1]">
+        {t('home.customTitle', lang)}
+      </h2>
+      <p class="text-base md:text-lg text-n-400 font-light max-w-xl mx-auto mb-10 leading-relaxed">
+        {t('home.customSubtitle', lang)}
+      </p>
+      <a href={url('/product/tapis-de-souris-personnalise')} class="btn-primary inline-flex items-center gap-2">
+        {t('home.customCta', lang)}
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ CATÉGORIES PRODUITS (sliders) ═══════════════════════════ -->
+  {categoryRows.map((row, idx) => {
+    const bgClass = idx % 3 === 0 ? '' : idx % 3 === 1 ? 'bg-panel' : 'bg-teal';
+    return (
+    <section class={`relative py-16 md:py-20 border-t border-white/[0.04] overflow-hidden below-fold-defer ${bgClass}`}>
+      <div class="slider-glow slider-glow-1" style={`background: ${row.glow1}`}></div>
+      <div class="slider-glow slider-glow-2" style={`background: ${row.glow2}`}></div>
+      <div class="relative max-w-7xl mx-auto px-6">
+        <div class="flex items-end justify-between mb-6 md:mb-8 gap-4">
+          <div>
+            <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-2 block">{t('home.categoryCollection', lang)}</span>
+            <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream">{row.label}</h2>
+          </div>
+          <a href={url(`/product-category/${row.slug}`)} class="inline-flex items-center gap-1.5 text-xs md:text-sm text-n-400 hover:text-cream transition-colors whitespace-nowrap">
+            {t('home.categorySeeAll', lang)} ({row.products.length})
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="product-slider relative" data-slider>
+        <div class="slider-track flex gap-3 md:gap-4 lg:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 pl-6 md:pl-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] pr-6">
+          {row.products.map(p => (
+            <a href={productHref(p.slug)} class="slider-card group flex-none w-[72vw] sm:w-[45vw] md:w-[30vw] lg:w-[22vw] xl:w-[310px] snap-start block">
+              <div class="relative aspect-[4/3] rounded-2xl overflow-hidden bg-panel border border-white/[0.05] mb-3">
+                <img src={p.data.image} srcset={unsplashSrcset(p.data.image)}
+                  sizes="(max-width: 640px) 72vw, (max-width: 768px) 45vw, (max-width: 1024px) 32vw, 300px"
+                  alt={p.data.imageAlt ?? p.data.name}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  width="800" height="600" loading="lazy" decoding="async" />
+                {p.data.compareAtPrice && (
+                  <span class="absolute top-3 left-3 bg-cream text-dark text-[10px] font-medium px-2 py-1 rounded-sm uppercase tracking-wider">
+                    -{Math.round((1 - p.data.price / p.data.compareAtPrice) * 100)}%
+                  </span>
+                )}
+              </div>
+              <h3 class="text-sm font-medium text-cream tracking-tight leading-snug line-clamp-2 mb-1 group-hover:underline underline-offset-4">
+                {p.data.name}
+              </h3>
+              <div class="flex items-baseline gap-2 text-xs">
+                <span class="text-cream font-medium">{displayPrice(p.data)}</span>
+                {p.data.compareAtPrice && (
+                  <span class="text-n-500 line-through font-light">{formatPrice(p.data.compareAtPrice)}</span>
+                )}
+              </div>
+            </a>
+          ))}
+          <div class="flex-none w-2" aria-hidden="true"></div>
+        </div>
+        <div class="pointer-events-none absolute inset-0 max-w-7xl mx-auto hidden md:block px-6">
+          <button type="button" data-scroll="prev" class="pointer-events-auto absolute left-2 top-[38%] -translate-y-1/2 w-10 h-10 rounded-full bg-dark/90 border border-white/[0.15] backdrop-blur flex items-center justify-center text-cream hover:bg-dark hover:border-white/30 disabled:opacity-0 disabled:pointer-events-none transition-all shadow-lg" aria-label="Prev">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button type="button" data-scroll="next" class="pointer-events-auto absolute right-2 top-[38%] -translate-y-1/2 w-10 h-10 rounded-full bg-dark/90 border border-white/[0.15] backdrop-blur flex items-center justify-center text-cream hover:bg-dark hover:border-white/30 disabled:opacity-0 disabled:pointer-events-none transition-all shadow-lg" aria-label="Next">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        {idx === 0 && (
+          <div class="md:hidden px-6 mt-2 text-center">
+            <span class="inline-flex items-center gap-2 text-[10px] text-n-500 font-light uppercase tracking-widest">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              {t('home.swipeHint', lang)}
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+          </div>
+        )}
+      </div>
+    </section>
+    );
+  })}
+
+  <style>
+    .hero-section { isolation: isolate; }
+    .hero-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; z-index:0; }
+    .below-fold-defer { content-visibility: auto; contain-intrinsic-size: auto 800px; }
+    .hero-section::after { content:""; position:absolute; inset:0; background:linear-gradient(to right, rgba(10,10,15,0.88), rgba(10,10,15,0.6) 55%, rgba(10,10,15,0.3)); pointer-events:none; z-index:1; }
+    .hero-section > .relative { z-index:2; }
+    .product-slider .slider-track { scrollbar-width:none; -ms-overflow-style:none; }
+    .product-slider .slider-track::-webkit-scrollbar { display:none; }
+    .slider-glow { position:absolute; border-radius:100%; pointer-events:none; filter:blur(120px); }
+    .slider-glow-1 { top:-5rem; left:-5rem; width:700px; height:500px; }
+    .slider-glow-2 { bottom:-5rem; right:-5rem; width:600px; height:400px; filter:blur(110px); }
+    @media (max-width: 767px) {
+      .slider-glow-1 { width:340px; height:220px; top:-4rem; left:-6rem; opacity:0.55; filter:blur(80px); }
+      .slider-glow-2 { width:300px; height:200px; bottom:-4rem; right:-6rem; opacity:0.55; filter:blur(80px); }
+    }
+  </style>
+
+  <script is:inline>
+    (function() {
+      function initSliders() {
+        document.querySelectorAll('[data-slider]').forEach(slider => {
+          const track = slider.querySelector('.slider-track');
+          const prev = slider.querySelector('[data-scroll="prev"]');
+          const next = slider.querySelector('[data-scroll="next"]');
+          if (!track) return;
+          function scrollBy(dir) {
+            const card = track.querySelector('.slider-card');
+            if (!card) return;
+            const cardWidth = card.getBoundingClientRect().width + 20;
+            track.scrollBy({ left: cardWidth * 2 * dir, behavior: 'smooth' });
+          }
+          prev?.addEventListener('click', () => scrollBy(-1));
+          next?.addEventListener('click', () => scrollBy(1));
+          function upd() {
+            if (!prev || !next) return;
+            prev.disabled = track.scrollLeft <= 1;
+            next.disabled = track.scrollLeft >= track.scrollWidth - track.clientWidth - 1;
+          }
+          track.addEventListener('scroll', upd, { passive: true });
+          window.addEventListener('resize', upd);
+          requestAnimationFrame(upd);
+        });
+      }
+      if ('requestIdleCallback' in window) requestIdleCallback(initSliders, { timeout: 2000 });
+      else setTimeout(initSliders, 0);
+    })();
+  </script>
+
+  <!-- ═══════════════════════════ AVIS CLIENTS ═══════════════════════════ -->
+  <section class="relative py-20 md:py-24 px-6 border-t border-white/[0.04] bg-panel overflow-hidden below-fold-defer">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#ffd98c]/[0.04] blur-[140px] rounded-[100%] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-20 w-[400px] h-[200px] bg-[#fff3c4]/[0.03] blur-[120px] rounded-full pointer-events-none"></div>
+    <div class="relative max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-3 block">{t('home.testimonialsLabel', lang)}</span>
+        <h2 class="text-2xl md:text-3xl font-medium tracking-tight text-cream">
+          {t('home.testimonialsTitle', lang)}
+        </h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+        {testimonials.map((tst: { name: string; text: string }) => (
+          <blockquote class="rounded-2xl border border-white/[0.08] bg-dark p-6 md:p-8 relative">
+            <div class="flex gap-0.5 mb-4 text-cream">
+              {[0,1,2,3,4].map(() => (
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>
+              ))}
+            </div>
+            <p class="text-sm md:text-base text-n-300 font-light leading-relaxed mb-5">
+              « {tst.text} »
+            </p>
+            <footer class="text-xs text-n-500 font-medium uppercase tracking-widest">- {tst.name}</footer>
+          </blockquote>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ PERFORMANCE & DURABILITÉ ═══════════════════════════ -->
+  <section class="relative py-20 md:py-24 px-6 border-t border-white/[0.04] bg-gradient-to-b from-dark via-[#08101a] to-panel/50 overflow-hidden below-fold-defer">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#3b5bff]/[0.05] blur-[140px] rounded-[100%] pointer-events-none"></div>
+    <div class="relative max-w-4xl mx-auto text-center">
+      <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-3 block">{t('home.perfLabel', lang)}</span>
+      <h2 class="text-2xl md:text-3xl font-medium tracking-tight text-cream mb-4">
+        {t('home.perfTitle', lang)}
+      </h2>
+      <p class="text-sm md:text-base text-n-400 font-light leading-relaxed max-w-2xl mx-auto">
+        {t('home.perfText', lang)}
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ SECTIONS GUIDES ═══════════════════════════ -->
+  <section class="relative py-16 md:py-20 px-6 border-t border-white/[0.04] bg-panel overflow-hidden below-fold-defer">
+    <div class="absolute top-1/2 right-0 w-[400px] h-[400px] bg-white/[0.02] blur-[140px] rounded-full pointer-events-none"></div>
+    <div class="relative max-w-4xl mx-auto space-y-14">
+      <article>
+        <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream mb-4 leading-tight">
+          {t('home.guide1Title', lang)}
+        </h2>
+        <div class="prose prose-invert max-w-none prose-p:font-light prose-p:text-n-400 prose-p:leading-relaxed prose-p:text-sm md:prose-p:text-base prose-strong:text-cream prose-strong:font-medium prose-a:text-cream prose-a:underline prose-a:underline-offset-4 prose-a:decoration-white/30 hover:prose-a:decoration-cream">
+          <p set:html={inlineMd(injectLinks(t('home.guide1P1', lang)))} />
+          <p set:html={inlineMd(injectLinks(t('home.guide1P2', lang)))} />
+        </div>
+      </article>
+      <article>
+        <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream mb-4 leading-tight">
+          {t('home.guide2Title', lang)}
+        </h2>
+        <div class="prose prose-invert max-w-none prose-p:font-light prose-p:text-n-400 prose-p:leading-relaxed prose-p:text-sm md:prose-p:text-base prose-strong:text-cream prose-strong:font-medium prose-a:text-cream prose-a:underline prose-a:underline-offset-4 prose-a:decoration-white/30 hover:prose-a:decoration-cream">
+          <p set:html={inlineMd(injectLinks(t('home.guide2P1', lang)))} />
+          <p set:html={inlineMd(injectLinks(t('home.guide2P2', lang)))} />
+        </div>
+      </article>
+      <article>
+        <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream mb-4 leading-tight">
+          {t('home.guide3Title', lang)}
+        </h2>
+        <div class="prose prose-invert max-w-none prose-p:font-light prose-p:text-n-400 prose-p:leading-relaxed prose-p:text-sm md:prose-p:text-base prose-strong:text-cream prose-strong:font-medium">
+          <p set:html={inlineMd(t('home.guide3P1', lang))} />
+          <p set:html={inlineMd(t('home.guide3P2', lang))} />
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ BLOG PREVIEW ═══════════════════════════ -->
+  {recentPosts.length > 0 && <div class="below-fold-defer"><BlogPreview posts={recentPosts} lang={lang} /></div>}
+
+  <!-- ═══════════════════════════ FAQ ═══════════════════════════ -->
+  <section class="py-20 md:py-24 px-6 border-t border-white/[0.04] bg-panel below-fold-defer">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-12">
+        <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-3 block">FAQ</span>
+        <h2 class="text-2xl md:text-3xl font-medium tracking-tight text-cream">
+          {t('faq.title', lang)}
+        </h2>
+      </div>
+      <div class="space-y-3">
+        {faqs.map((f: { q: string; a: string }) => (
+          <details class="group rounded-2xl border border-white/[0.08] bg-dark open:border-white/20 transition-colors">
+            <summary class="flex items-start justify-between gap-4 px-6 py-5 cursor-pointer list-none font-medium text-base text-cream tracking-tight">
+              <span class="flex-1" set:html={inlineMd(f.q)} />
+              <span class="text-n-400 text-xl leading-none transition-transform group-open:rotate-45 shrink-0">+</span>
+            </summary>
+            <p class="px-6 pb-5 pt-1 font-light text-sm text-n-400 leading-relaxed [&_strong]:text-cream [&_strong]:font-medium [&_a]:text-cream [&_a]:underline [&_a]:underline-offset-4" set:html={inlineMd(f.a)} />
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ CTA FINAL ═══════════════════════════ -->
+  <section class="relative py-24 px-6 overflow-hidden border-t border-white/[0.04] below-fold-defer">
+    <div class="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-white/[0.04] blur-[120px] rounded-[100%] pointer-events-none"></div>
+    <div class="relative max-w-3xl mx-auto text-center">
+      <h2 class="text-3xl md:text-4xl font-medium tracking-tight text-cream mb-4 leading-[1.1]">
+        {t('home.ctaTitle', lang)}
+      </h2>
+      <p class="text-base text-n-400 mb-10 max-w-xl mx-auto font-light">
+        {t('home.ctaSubtitle', lang)}
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href={url('/tapis-de-souris')} class="w-full sm:w-auto btn-primary">{t('home.ctaShop', lang)}</a>
+        <a href={url('/blog')} class="w-full sm:w-auto btn-outline">{t('home.ctaBlog', lang)}</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
