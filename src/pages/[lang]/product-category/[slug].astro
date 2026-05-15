@@ -152,7 +152,7 @@ if (faqSchema) jsonLd.push(faqSchema);
           class="inline-flex items-center gap-3 px-5 py-3 rounded-full border border-white/[0.12] bg-white/[0.03] text-sm font-medium text-cream cursor-pointer hover:border-white/25 hover:bg-white/[0.06] transition-colors select-none"
         >
           <span class="text-n-500 text-xs uppercase tracking-widest">{t('shop.categoryLabel', lang)}</span>
-          <span class="text-cream">{category.label.replace(/^Tapis de souris\s*/i, '')}</span>
+          <span class="text-cream">{category.label.replace(new RegExp(`^${siteConfig.shop.categoryLabelPrefix ?? ''}\s*`, 'i'), '')}</span>
           <svg class="w-4 h-4 cat-chevron text-n-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
@@ -169,7 +169,7 @@ if (faqSchema) jsonLd.push(faqSchema);
               class={`flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors ${c.slug === category.slug ? 'bg-cream text-dark font-medium' : 'text-n-400 hover:bg-white/[0.05] hover:text-cream'}`}
               aria-current={c.slug === category.slug ? 'page' : undefined}
             >
-              <span>{c.label.replace(/^Tapis de souris\s*/i, '')}</span>
+              <span>{c.label.replace(new RegExp(`^${siteConfig.shop.categoryLabelPrefix ?? ''}\s*`, 'i'), '')}</span>
               {c.slug === category.slug && (
                 <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
               )}

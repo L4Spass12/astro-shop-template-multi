@@ -40,9 +40,8 @@ const allProducts = await getCollection('products');
 
 // Sélection catégorie pour le slider "Vous aimerez aussi"
 const GENERIC_CATEGORIES = new Set([
-  'tapis-de-souris-xxl',
-  'tapis-souris-led-rgb',
-  'tapis-souris-led-rgb-charge-sans-fil',
+  ...(siteConfig.shop?.sizeCategorySlugs ?? []),
+  ...(siteConfig.shop?.featureCategorySlugs ?? []),
 ]);
 const preferredCategory = (categories || []).find((c: string) => !GENERIC_CATEGORIES.has(c))
   ?? categories?.[0];

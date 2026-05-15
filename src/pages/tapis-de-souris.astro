@@ -32,14 +32,14 @@ const displayPrice = (d: any) =>
 
 // Transforme slug en label lisible : "tapis-de-souris-xxl" → "Tapis de souris XXL"
 const catLabel = (slug: string) =>
-  slug.replace(/^tapis-de-souris-/, '').replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase());
+  slug.replace(/^[a-z]+-[a-z]+-[a-z]+-/, '').replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase());
 
 const SITE_URL = siteConfig.url;
 const collectionSchema = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
   name: `Boutique ${siteConfig.name}`,
-  description: `Tapis de souris gaming, bureautique, XXL et accessoires setup sélectionnés par ${siteConfig.name}.`,
+  description: siteConfig.description,
   url: `${SITE_URL}/${siteConfig.shop.path}`,
   inLanguage: 'fr-FR',
   isPartOf: { '@type': 'WebSite', name: siteConfig.name, url: SITE_URL },
@@ -50,14 +50,14 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
-    { '@type': 'ListItem', position: 2, name: 'Tapis de souris', item: `${SITE_URL}/${siteConfig.shop.path}` },
+    { '@type': 'ListItem', position: 2, name: siteConfig.shop.categoryLabelPrefix || 'Boutique', item: `${SITE_URL}/${siteConfig.shop.path}` },
   ],
 };
 ---
 
 <BaseLayout
-  title={`Tapis de souris - Boutique ${siteConfig.name}`}
-  description={`Notre sélection de tapis de souris gaming, bureautique, XXL, kawaii, manga et minimaliste. Livraison sécurisée, retour 30 jours.`}
+  title={`${siteConfig.shop.categoryLabelPrefix || 'Boutique'} - ${siteConfig.name}`}
+  description={siteConfig.description}
   jsonLd={[collectionSchema, breadcrumbSchema]}
 >
   <section class="max-w-7xl mx-auto px-6 pt-6 md:pt-8 pb-16 md:pb-24">
@@ -142,7 +142,7 @@ const breadcrumbSchema = {
                   class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm text-n-400 hover:bg-white/[0.05] hover:text-cream transition-colors"
                   role="menuitem"
                 >
-                  <span>{c.label.replace(/^Tapis de souris\s*/i, '')}</span>
+                  <span>{c.label.replace(new RegExp(`^${siteConfig.shop.categoryLabelPrefix ?? ''}\s*`, 'i'), '')}</span>
                 </a>
               ))}
             </div>

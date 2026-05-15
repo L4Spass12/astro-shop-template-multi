@@ -5,7 +5,7 @@ import { getCollection } from 'astro:content';
 import siteConfig from '../../../site.config.mjs';
 import { unsplashSrcset, unsplashAt } from '../../lib/image';
 import InfiniteReveal from '../../components/InfiniteReveal.astro';
-import { parseEntrySlug } from '../../lib/i18n';
+import { parseEntrySlug, t } from '../../lib/i18n';
 
 // Listing FR uniquement (la locale par défaut). Les versions EN/DE auront leur
 // propre route /<lang>/blog/index.astro quand le contenu sera traduit.
@@ -30,7 +30,7 @@ const collectionSchema = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
   name: `Blog ${siteConfig.name}`,
-  description: "Articles, tests et guides d'achat sur les tapis de souris gaming, bureautique et l'optimisation de votre setup PC.",
+  description: t('blog.intro', 'fr'),
   url: `${SITE_URL}/blog`,
   inLanguage: 'fr-FR',
   isPartOf: { '@type': 'WebSite', name: siteConfig.name, url: SITE_URL },
@@ -53,18 +53,18 @@ const breadcrumbSchema = {
 ---
 
 <BaseLayout
-  title={`Blog ${siteConfig.name} - Tapis de souris & setup`}
-  description="Articles, tests et guides d'achat sur les tapis de souris gaming, bureautique et l'optimisation de votre setup PC."
+  title={t('blog.title', 'fr').replace('{site}', siteConfig.name)}
+  description={t('blog.intro', 'fr')}
   jsonLd={[collectionSchema, breadcrumbSchema]}
 >
   <div class="max-w-7xl mx-auto px-6 pt-6 md:pt-8 pb-16 md:pb-24">
     <!-- Page header -->
     <div class="text-center mb-16">
       <h1 class="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-cream leading-[1.1] mb-4">
-        Tests, guides & <br class="hidden md:block" />inspirations setup.
+        {t('blog.subtitle', 'fr')}
       </h1>
       <p class="text-base text-n-400 max-w-xl mx-auto font-light">
-        Tapis de souris, ergonomie, gaming compétitif et télétravail - ce qu'il faut pour un bureau qui tient la route.
+        {t('blog.intro', 'fr')}
       </p>
     </div>
 

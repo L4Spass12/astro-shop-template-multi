@@ -5,7 +5,7 @@ import Icon from '../components/Icon.astro';
 import siteConfig from '../../site.config.mjs';
 import { getCollection } from 'astro:content';
 import { inlineMd } from '../lib/inline-md';
-import { parseEntrySlug } from '../lib/i18n';
+import { parseEntrySlug, t } from '../lib/i18n';
 import { unsplashSrcset } from '../lib/image';
 
 // ─── Données ──────────────────────────────────────────────────────────────
@@ -47,6 +47,15 @@ const categoryRows = (siteConfig.home?.categoryRows ?? [])
 const testimonials = siteConfig.home?.testimonials?.fr ?? [];
 const faqs = siteConfig.home?.faqs?.fr ?? [];
 
+// Sections guides : remplace LINK_GAMING / LINK_XXL par les URLs de
+// catégories configurées dans site.config.home.guideLinks.
+function injectLinks(html: string) {
+  const links = siteConfig.home?.guideLinks ?? {};
+  return html
+    .replace('LINK_GAMING', links.gaming ? `/product-category/${links.gaming}` : '/blog')
+    .replace('LINK_XXL', links.xxl ? `/product-category/${links.xxl}` : '/blog');
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────
 const formatPrice = (n: number) => new Intl.NumberFormat('fr-FR', {
   style: 'currency', currency: siteConfig.shop.currency,
@@ -81,8 +90,8 @@ const faqSchema = {
 ---
 
 <BaseLayout
-  title={`${siteConfig.name} | La boutique référence du tapis de souris`}
-  description="Tapis de souris XXL et personnalisés pour le gaming, le télétravail et la création : précision maximale, confort et designs uniques pour sublimer votre bureau."
+  title={`${siteConfig.name} | ${t('home.heroTitle', 'fr')}`}
+  description={t("home.heroSubtitle", "fr")}
   jsonLd={[websiteSchema, faqSchema]}
   preloadImages={[
     { href: '/images/home/hero-desktop-800w.webp',
@@ -110,22 +119,22 @@ const faqSchema = {
     />
 
     <div class="relative max-w-7xl mx-auto px-6 py-20 md:py-24 w-full flex flex-col justify-center">
-      <span class="tag tag-status mb-6 self-start">Nouvelle collection 2026</span>
+      <span class="tag tag-status mb-6 self-start">{t("home.heroTag", "fr")}</span>
 
       <h1 class="text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-cream mb-4 leading-[1.1] max-w-2xl">
-        Tapis de souris Gamer<br class="hidden md:block" /> XXL &amp; Ergonomiques
+        {t("home.heroTitle", "fr")}
       </h1>
 
       <p class="text-base md:text-lg text-n-300 mb-8 max-w-xl font-light">
-        Pensé pour le confort. Conçu pour durer.
+        {t("home.heroSubtitle", "fr")}
       </p>
 
       <div class="flex flex-col sm:flex-row items-start gap-3">
         <a href={`/${siteConfig.shop.path}`} class="btn-primary inline-flex items-center gap-2">
-          Découvrir
+          {t("home.ctaDiscover", "fr")}
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         </a>
-        <a href="/product/tapis-de-souris-personnalise" class="btn-outline">Personnaliser mon tapis</a>
+        <a href={`/product/${siteConfig.shop.customProductSlug ?? "produit-personnalise"}`} class="btn-outline">{t("home.ctaCustomize", "fr")}</a>
       </div>
     </div>
   </section>
@@ -187,15 +196,15 @@ const faqSchema = {
     <div class="absolute top-1/2 left-10 -translate-y-1/2 w-[400px] h-[400px] bg-[#ff9b5c]/[0.05] blur-[140px] rounded-full pointer-events-none"></div>
     <div class="absolute bottom-0 right-20 w-[500px] h-[250px] bg-[#ff5c7a]/[0.04] blur-[140px] rounded-full pointer-events-none"></div>
     <div class="relative max-w-5xl mx-auto text-center">
-      <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-4 block">Sur-mesure</span>
+      <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-4 block">{t("home.customLabel", "fr")}</span>
       <h2 class="text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-cream mb-5 leading-[1.1]">
-        Votre image, votre tapis.
+        {t("home.customTitle", "fr")}
       </h2>
       <p class="text-base md:text-lg text-n-400 font-light max-w-xl mx-auto mb-10 leading-relaxed">
-        Téléchargez votre visuel, choisissez le format, recevez un tapis unique imprimé pour vous.
+        {t("home.customSubtitle", "fr")}
       </p>
-      <a href="/product/tapis-de-souris-personnalise" class="btn-primary inline-flex items-center gap-2">
-        Je personnalise
+      <a href={`/product/${siteConfig.shop.customProductSlug ?? "produit-personnalise"}`} class="btn-primary inline-flex items-center gap-2">
+        {t("home.customCta", "fr")}
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
     </div>
@@ -461,13 +470,12 @@ const faqSchema = {
     <!-- Accent tech / gaming (bleu profond) -->
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#3b5bff]/[0.05] blur-[140px] rounded-[100%] pointer-events-none"></div>
     <div class="relative max-w-4xl mx-auto text-center">
-      <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-3 block">Performance &amp; durabilité</span>
+      <span class="text-[10px] text-n-500 font-medium uppercase tracking-widest mb-3 block">{t('home.perfLabel', 'fr')}</span>
       <h2 class="text-2xl md:text-3xl font-medium tracking-tight text-cream mb-4">
-        Fabrication haute précision
+        {t('home.perfTitle', 'fr')}
       </h2>
       <p class="text-sm md:text-base text-n-400 font-light leading-relaxed max-w-2xl mx-auto">
-        Nos tapis de souris offrent une qualité supérieure, une finition parfaite et une résistance optimale.
-        Pensés pour les utilisateurs exigeants, ils allient esthétique, précision et longévité.
+        {t('home.perfText', 'fr')}
       </p>
     </div>
   </section>
@@ -478,43 +486,31 @@ const faqSchema = {
     <div class="relative max-w-4xl mx-auto space-y-14">
       <article>
         <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream mb-4 leading-tight">
-          Comment choisir le meilleur tapis de souris pour votre setup
+          {t("home.guide1Title", "fr")}
         </h2>
         <div class="prose prose-invert max-w-none prose-p:font-light prose-p:text-n-400 prose-p:leading-relaxed prose-p:text-sm md:prose-p:text-base prose-strong:text-cream prose-strong:font-medium prose-a:text-cream prose-a:underline prose-a:underline-offset-4 prose-a:decoration-white/30 hover:prose-a:decoration-cream">
-          <p>
-            Le choix de votre <strong>tapis de souris</strong> dépend essentiellement de votre usage. Pour les joueurs compétitifs (FPS, MOBA), nous recommandons nos <a href="/product-category/tapis-de-souris-gaming">tapis de souris gamer</a> avec une surface « Speed » ou « Control », optimisée pour la précision des capteurs optiques et laser.
-          </p>
-          <p>
-            Pour le télétravail ou le bureau, privilégiez le confort et l'esthétique. Nos modèles offrent une glisse douce qui réduit la fatigue du poignet, tout en habillant votre espace de travail avec des designs uniques.
-          </p>
+          <p set:html={inlineMd(injectLinks(t('home.guide1P1', 'fr')))} />
+          <p set:html={inlineMd(injectLinks(t('home.guide1P2', 'fr')))} />
         </div>
       </article>
 
       <article>
         <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream mb-4 leading-tight">
-          Pourquoi opter pour un tapis de souris XXL (Deskmat) ?
+          {t("home.guide2Title", "fr")}
         </h2>
         <div class="prose prose-invert max-w-none prose-p:font-light prose-p:text-n-400 prose-p:leading-relaxed prose-p:text-sm md:prose-p:text-base prose-strong:text-cream prose-strong:font-medium prose-a:text-cream prose-a:underline prose-a:underline-offset-4 prose-a:decoration-white/30 hover:prose-a:decoration-cream">
-          <p>
-            Le <a href="/product-category/tapis-de-souris-xxl">tapis de souris XXL</a>, aussi appelé <strong>Deskmat</strong>, est devenu la nouvelle norme. Contrairement au format standard carré, le grand format (900×400 mm ou plus) couvre l'intégralité de votre bureau.
-          </p>
-          <p>
-            Ses avantages sont nombreux : il accueille à la fois votre clavier et votre souris pour une stabilité totale, protège la surface de votre bureau contre les rayures, et unifie visuellement votre <strong>setup gaming</strong> ou bureautique. Plus besoin de repositionner votre souris en plein jeu !
-          </p>
+          <p set:html={inlineMd(injectLinks(t('home.guide2P1', 'fr')))} />
+          <p set:html={inlineMd(injectLinks(t('home.guide2P2', 'fr')))} />
         </div>
       </article>
 
       <article>
         <h2 class="text-xl md:text-2xl font-medium tracking-tight text-cream mb-4 leading-tight">
-          Matériaux durables, base antidérapante et bords cousus
+          {t("home.guide3Title", "fr")}
         </h2>
         <div class="prose prose-invert max-w-none prose-p:font-light prose-p:text-n-400 prose-p:leading-relaxed prose-p:text-sm md:prose-p:text-base prose-strong:text-cream prose-strong:font-medium">
-          <p>
-            La qualité d'un tapis se juge sur la durée. Tous nos produits sont conçus avec une <strong>base en caoutchouc antidérapante</strong> qui assure une adhérence parfaite sur le bureau, même lors de mouvements brusques.
-          </p>
-          <p>
-            La surface en tissu micro-tissé assure une glisse fluide, tandis que les <strong>bords cousus renforcés</strong> empêchent l'effilochage sur le long terme. De plus, la majorité de nos tapis sont résistants à l'eau et <strong>lavables</strong>, garantissant une hygiène parfaite pour votre espace.
-          </p>
+          <p set:html={inlineMd(t('home.guide3P1', 'fr'))} />
+          <p set:html={inlineMd(t('home.guide3P2', 'fr'))} />
         </div>
       </article>
     </div>
@@ -554,11 +550,11 @@ const faqSchema = {
         Prêt à upgrader votre setup ?
       </h2>
       <p class="text-base text-n-400 mb-10 max-w-xl mx-auto font-light">
-        Explorez la boutique pour trouver la surface qui correspond à votre style, ou créez votre propre tapis unique.
+        {t("home.ctaSubtitle", "fr")}
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a href={`/${siteConfig.shop.path}`} class="w-full sm:w-auto btn-primary">Voir la boutique</a>
-        <a href="/blog" class="w-full sm:w-auto btn-outline">Lire le blog</a>
+        <a href={`/${siteConfig.shop.path}`} class="w-full sm:w-auto btn-primary">{t("home.ctaShop", "fr")}</a>
+        <a href="/blog" class="w-full sm:w-auto btn-outline">{t("home.ctaBlog", "fr")}</a>
       </div>
     </div>
   </section>

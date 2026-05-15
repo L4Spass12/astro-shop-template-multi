@@ -56,6 +56,19 @@ const config = {
     // pour récupérer ta clé Stripe, ton mode test/live, ta TVA, etc.
     // Crée le shop via l'admin du worker AVANT de déployer le site.
     atelierShopId: '50e9f184-21e0-43bc-940e-52768855c84f',
+    // Slug du produit "personnalisable" (CTA "Personnaliser mon X") — laisse
+    // null si pas de produit personnalisé sur ce site.
+    customProductSlug: 'tapis-de-souris-personnalise',
+    // Préfixe stripé des labels de catégorie dans Header/breadcrumbs.
+    // Ex: catégorie "Tapis de souris Gaming" → affichée "Gaming".
+    // Laisse '' (chaîne vide) pour désactiver le stripping.
+    categoryLabelPrefix: 'Tapis de souris',
+    // Slugs de catégories utilisés comme "tailles" sur la fiche produit
+    // (le 1er match dans products.categories définit la taille affichée).
+    sizeCategorySlugs: ['tapis-de-souris-xxl', 'tapis-de-souris-large', 'tapis-de-souris-standard'],
+    // Catégories "features" transversales (RGB, sans-fil, etc.) — utilisées
+    // pour dépriorityser le slider "Vous aimerez aussi" (préférer thématique).
+    featureCategorySlugs: ['tapis-souris-led-rgb', 'tapis-souris-led-rgb-charge-sans-fil'],
   },
 
   // ⚠ ─── Formulaires (Web3Forms — gratuit, illimité) ─────────────────── ⚠
@@ -141,6 +154,16 @@ const config = {
   home: {
     // Alt text de l'image hero (visible aux lecteurs d'écran + Google Images)
     heroImageAlt: 'Tapis de souris BuddyPad dans un setup gaming élégant',
+
+    // Liens internes injectés dans les paragraphes guides via placeholders
+    // LINK_GAMING / LINK_XXL des i18n strings home.guide1P1 / guide2P1.
+    // Mets le slug de la catégorie cible (sans /product-category/). Null
+    // pour désactiver (fallback /blog).
+    guideLinks: {
+      gaming: 'tapis-de-souris-gaming',
+      xxl: 'tapis-de-souris-xxl',
+    },
+
 
     // 5 sliders catégories sur la home (max). Chaque entrée pointe sur une
     // productCategory.slug existante. Glow couleurs adaptables à la palette.

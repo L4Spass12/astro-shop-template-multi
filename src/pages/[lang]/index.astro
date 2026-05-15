@@ -68,9 +68,10 @@ const productHref = (slug: string) => url('/product/' + parseEntrySlug(slug).slu
 // Sections guides : remplace les placeholders LINK_GAMING / LINK_XXL par les
 // vrais liens préfixés locale.
 function injectLinks(html: string) {
+  const links = siteConfig.home?.guideLinks ?? {};
   return html
-    .replace('LINK_GAMING', url('/product-category/tapis-de-souris-gaming'))
-    .replace('LINK_XXL', url('/product-category/tapis-de-souris-xxl'));
+    .replace('LINK_GAMING', links.gaming ? url(`/product-category/${links.gaming}`) : url('/blog'))
+    .replace('LINK_XXL', links.xxl ? url(`/product-category/${links.xxl}`) : url('/blog'));
 }
 
 // ─── SEO ─────────────────────────────────────────────────────────────────
@@ -126,7 +127,7 @@ const faqSchema = {
           {t('home.ctaDiscover', lang)}
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         </a>
-        <a href={url('/product/tapis-de-souris-personnalise')} class="btn-outline">{t('home.ctaCustomize', lang)}</a>
+        <a href={url(`/product/${siteConfig.shop.customProductSlug ?? 'produit-personnalise'}`)} class="btn-outline">{t('home.ctaCustomize', lang)}</a>
       </div>
     </div>
   </section>
@@ -189,7 +190,7 @@ const faqSchema = {
       <p class="text-base md:text-lg text-n-400 font-light max-w-xl mx-auto mb-10 leading-relaxed">
         {t('home.customSubtitle', lang)}
       </p>
-      <a href={url('/product/tapis-de-souris-personnalise')} class="btn-primary inline-flex items-center gap-2">
+      <a href={url(`/product/${siteConfig.shop.customProductSlug ?? 'produit-personnalise'}`)} class="btn-primary inline-flex items-center gap-2">
         {t('home.customCta', lang)}
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </a>

@@ -129,13 +129,13 @@ const web3formsKey = siteConfig.forms?.web3formsKey ?? '';
         role="alert"
       >
         {t('contact.error', lang)}
-        <a href="mailto:contact@buddypad.com" class="underline">contact@buddypad.com</a>.
+        <a href={`mailto:${siteConfig.legal.editor.email}`} class="underline">{siteConfig.legal.editor.email}</a>.
       </div>
     </form>
 
     <div class="mt-12 pt-8 border-t border-white/[0.08]">
       <p class="text-xs text-n-500 font-light">
-        <a href="mailto:contact@buddypad.com" class="text-cream hover:underline underline-offset-4">contact@buddypad.com</a>
+        <a href={`mailto:${siteConfig.legal.editor.email}`} class="text-cream hover:underline underline-offset-4">{siteConfig.legal.editor.email}</a>
       </p>
     </div>
   </div>

@@ -32,10 +32,11 @@ const allProducts = await getCollection('products');
 // ─── Sélection catégorie pour "Vous aimerez aussi" ─────────────────────
 // Les catégories transversales (taille, feature) contiennent TOUS les produits
 // → on préfère une catégorie thématique. Priorité bas = déprioritisé.
+// Catégories transversales (taille, feature) à dépriorityser pour "Vous aimerez aussi".
+// Source : site.config.mjs → shop.sizeCategorySlugs + shop.featureCategorySlugs.
 const GENERIC_CATEGORIES = new Set([
-  'tapis-de-souris-xxl',                          // taille
-  'tapis-souris-led-rgb',                         // feature
-  'tapis-souris-led-rgb-charge-sans-fil',         // feature
+  ...(siteConfig.shop?.sizeCategorySlugs ?? []),
+  ...(siteConfig.shop?.featureCategorySlugs ?? []),
 ]);
 const preferredCategory = (categories || []).find(c => !GENERIC_CATEGORIES.has(c))
   ?? categories?.[0];
@@ -83,7 +84,7 @@ const seoTitle = (name.length + brandSuffix.length) <= 60
 // l'unicité même si shortDescription est dupliquée entre produits.
 // Format : "<nom>. <shortDesc courte>. À partir de X€. Livraison sécurisée."
 const priceStart = priceRange?.min ?? price;
-const catLabel = categories?.[0]?.replace(/^tapis-de-souris-/, '').replace(/-/g, ' ') ?? '';
+const catLabel = categories?.[0]?.replace(/^[a-z]+-[a-z]+-[a-z]+-/, '').replace(/-/g, ' ') ?? '';
 const truncated = shortDescription.length > 70
   ? shortDescription.slice(0, 70).replace(/\s+\S*$/, '') + '…'
   : shortDescription;
@@ -594,7 +595,7 @@ const breadcrumbSchema = {
           </div>
           <div>
             <h3 class="text-cream font-medium mb-1.5">Conseil durabilité</h3>
-            <p>Un tapis de souris BuddyPad entretenu correctement dure plusieurs années. Pour préserver la glisse de la surface micro-tissée, évitez de poser des boissons ou des aliments dessus, et nettoyez les taches dès leur apparition.</p>
+            <p>Un produit {siteConfig.name} entretenu correctement dure plusieurs années. Pour préserver sa qualité, évitez de poser des boissons ou des aliments dessus, et nettoyez les taches dès leur apparition.</p>
           </div>
         </div>
       </details>

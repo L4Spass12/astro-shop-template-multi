@@ -86,7 +86,7 @@ const cats = (siteConfig.productCategories || []) as {slug:string; label:string}
                   aria-current={active ? 'page' : undefined}
                   role="menuitem"
                 >
-                  <span>{c.label.replace(/^Tapis de souris\s*/i, '')}</span>
+                  <span>{c.label.replace(new RegExp(`^${siteConfig.shop.categoryLabelPrefix ?? ''}\s*`, 'i'), '')}</span>
                   {active && (
                     <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                       <polyline points="20 6 9 17 4 12"/>
@@ -193,7 +193,7 @@ const cats = (siteConfig.productCategories || []) as {slug:string; label:string}
                 class={`block py-2 text-xs transition-colors ${active ? 'text-cream font-medium' : 'text-n-500 hover:text-cream'}`}
                 aria-current={active ? 'page' : undefined}
               >
-                {c.label.replace(/^Tapis de souris\s*/i, '')}
+                {c.label.replace(new RegExp(`^${siteConfig.shop.categoryLabelPrefix ?? ''}\s*`, 'i'), '')}
               </a>
             );
           })}

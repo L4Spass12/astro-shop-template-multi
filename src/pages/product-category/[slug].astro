@@ -150,7 +150,7 @@ if (faqSchema) jsonLd.push(faqSchema);
           aria-label="Choisir une catégorie"
         >
           <span class="text-n-500 text-xs uppercase tracking-widest">Catégorie</span>
-          <span class="text-cream">{category.label.replace(/^Tapis de souris\s*/i, '')}</span>
+          <span class="text-cream">{category.label.replace(new RegExp(`^${siteConfig.shop.categoryLabelPrefix ?? ''}\s*`, 'i'), '')}</span>
           <svg class="w-4 h-4 cat-chevron text-n-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
@@ -175,7 +175,7 @@ if (faqSchema) jsonLd.push(faqSchema);
               aria-current={c.slug === category.slug ? 'page' : undefined}
               role="menuitem"
             >
-              <span>{c.label.replace(/^Tapis de souris\s*/i, '')}</span>
+              <span>{c.label.replace(new RegExp(`^${siteConfig.shop.categoryLabelPrefix ?? ''}\s*`, 'i'), '')}</span>
               {c.slug === category.slug && (
                 <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                   <polyline points="20 6 9 17 4 12"/>

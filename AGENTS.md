@@ -34,6 +34,10 @@ Tout est commenté. Les blocs marqués `⚠` sont **obligatoires** :
 - `logoPrefix` / `logoSuffix` — split visuel du logo (ex: `Mon` + `Shop`)
 - `shop.path` — slug de la boutique (ex: `boutique`, `produits`, `tapis-de-souris`)
 - `shop.atelierShopId` — UUID du shop côté Atelier (créé via dashboard `seamless-cart`)
+- `shop.customProductSlug` — slug du produit personnalisable (CTA "Personnaliser"), `null` si pas de personnalisation
+- `shop.categoryLabelPrefix` — préfixe à supprimer des labels catégorie (ex. "Tapis de souris" → "Gaming" au lieu de "Tapis de souris Gaming"), `''` pour désactiver
+- `shop.sizeCategorySlugs` / `featureCategorySlugs` — catégories transversales dépriorityées pour le slider "Vous aimerez aussi"
+- `home.guideLinks.{gaming,xxl}` — slugs catégories injectés dans les paragraphes guides via placeholders `LINK_GAMING` / `LINK_XXL`
 - `forms.web3formsKey` + `forms.subjectPrefix`
 - `legal.editor.*` — éditeur (laisser EI Quentin Amat si même propriétaire)
 - `categories` + `categorySlugs` — taxonomie produit
@@ -74,10 +78,24 @@ rm -rf public/images/blog/* public/images/products/* public/images/produits/* pu
 # Remets tes propres images, mêmes noms si possible (sinon update les MD).
 ```
 
-### 6. Traductions i18n
+### 6. Traductions i18n — **OBLIGATOIRE pour changer de niche**
 
-`src/i18n/{fr,en,de}.json` — vérifie chaque clé. Les chaînes qui mentionnent
-le produit/secteur (ex: "mouse pad" → "baby blanket") sont à adapter.
+`src/i18n/{fr,en,de}.json` contient **toutes** les chaînes UI visibles
+(hero, guides, FAQ, blog intro, perf section, etc.). Les pages
+`index.astro` et `[lang]/index.astro` lisent ces fichiers via `t()`.
+
+Édite **toutes** les clés mentionnant le produit/secteur :
+- `home.heroTag`, `heroTitle`, `heroSubtitle`
+- `home.guide1Title` à `guide3P2` (les paragraphes contiennent
+  `LINK_GAMING` / `LINK_XXL` qui seront remplacés au build par les URLs
+  configurées dans `home.guideLinks`)
+- `home.perfTitle`, `perfText`
+- `home.customTitle`, `customSubtitle`
+- `blog.title` (avec placeholder `{site}`), `blog.subtitle`, `blog.intro`
+- `shop.breadcrumbShop` (label de la boutique dans les fils d'Ariane)
+
+**Test rapide** : `grep -rn -i "mouse\|tapis\|pad" src/i18n/*.json` doit
+ne plus rien retourner après édition pour une nouvelle niche.
 
 ### 7. Pages légales
 
