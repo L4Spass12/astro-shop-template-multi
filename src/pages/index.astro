@@ -36,59 +36,16 @@ function byCategory(slug: string) {
   return sortedProducts.filter(p => (p.data.categories || []).includes(slug));
 }
 
-// Décor thématique par catégorie : glows colorés plus marqués
-const categoryRows = [
-  {
-    slug: 'tapis-de-souris-manga-anime', label: 'Manga / Anime',
-    products: byCategory('tapis-de-souris-manga-anime'),
-    glow1: 'rgba(255, 92, 122, 0.18)',    // rouge-rose sakura
-    glow2: 'rgba(255, 140, 80, 0.12)',    // ambre soleil couchant
-  },
-  {
-    slug: 'tapis-de-souris-gaming', label: 'Gaming',
-    products: byCategory('tapis-de-souris-gaming'),
-    glow1: 'rgba(0, 200, 255, 0.16)',     // cyan tech
-    glow2: 'rgba(59, 91, 255, 0.14)',     // bleu électrique
-  },
-  {
-    slug: 'tapis-de-souris-fantasy', label: 'Fantasy',
-    products: byCategory('tapis-de-souris-fantasy'),
-    glow1: 'rgba(155, 92, 255, 0.20)',    // violet magique
-    glow2: 'rgba(196, 120, 255, 0.14)',   // magenta profond
-  },
-  {
-    slug: 'tapis-de-souris-girly', label: 'Girly',
-    products: byCategory('tapis-de-souris-girly'),
-    glow1: 'rgba(255, 120, 180, 0.22)',   // rose bonbon
-    glow2: 'rgba(255, 180, 210, 0.15)',   // rose poudré
-  },
-  {
-    slug: 'tapis-de-souris-minimaliste', label: 'Minimaliste',
-    products: byCategory('tapis-de-souris-minimaliste'),
-    glow1: 'rgba(200, 200, 220, 0.10)',   // blanc cassé
-    glow2: 'rgba(140, 140, 160, 0.06)',   // gris acier
-  },
-].filter(row => row.products.length > 0);
+// Décor thématique par catégorie (config dans site.config.home.categoryRows).
+// On enrichit chaque entrée avec ses produits filtrés FR puis on garde les
+// catégories qui ont au moins un produit (sinon section vide).
+const categoryRows = (siteConfig.home?.categoryRows ?? [])
+  .map((row) => ({ ...row, products: byCategory(row.slug) }))
+  .filter((row) => row.products.length > 0);
 
-const testimonials = [
-  { name: 'Tom Duclk',    text: "Je joue plusieurs heures d'affilée et je ressentais souvent de l'inconfort avec mes anciens tapis. Celui-ci est doux, stable et très agréable, même sur de longues sessions." },
-  { name: 'Niamh Oxley',  text: "Très facile à nettoyer, aucune trace même après plusieurs semaines d'utilisation. Un simple coup de chiffon suffit pour qu'il reste comme neuf." },
-  { name: 'Mary Green',   text: "Le tapis personnalisé est exactement fidèle à l'image que j'ai fournie. Les couleurs sont nettes, le rendu parfait et la qualité vraiment au top. Très satisfait du résultat." },
-  { name: 'Pierre L.',    text: "Designs uniques et magnifiques, le rendu est superbe. Très belle qualité visuelle." },
-];
-
-const faqs = [
-  { q: 'Comment choisir le meilleur tapis de souris pour votre setup ?',
-    a: "Le choix de votre tapis de souris dépend essentiellement de votre usage. Pour les joueurs compétitifs (FPS, MOBA), nous recommandons nos tapis de souris gamer avec une surface « Speed » ou « Control », optimisée pour la précision des capteurs optiques et laser. Pour le télétravail ou le bureau, privilégiez le confort et l'esthétique. Nos modèles offrent une glisse douce qui réduit la fatigue du poignet, tout en habillant votre espace de travail avec des designs uniques." },
-  { q: 'Pourquoi opter pour un tapis de souris XXL (Deskmat) ?',
-    a: "Le tapis de souris XXL, aussi appelé Deskmat, est devenu la nouvelle norme. Contrairement au format standard carré, le grand format (900×400 mm ou plus) couvre l'intégralité de votre bureau. Il accueille à la fois votre clavier et votre souris pour une stabilité totale, protège la surface de votre bureau contre les rayures, et unifie visuellement votre setup gaming ou bureautique. Plus besoin de repositionner votre souris en plein jeu !" },
-  { q: 'Matériaux durables, base antidérapante et bords cousus : que faut-il vérifier ?',
-    a: "La qualité d'un tapis se juge sur la durée. Tous nos produits sont conçus avec une base en caoutchouc antidérapante qui assure une adhérence parfaite sur le bureau, même lors de mouvements brusques. La surface en tissu micro-tissé assure une glisse fluide, tandis que les bords cousus renforcés empêchent l'effilochage sur le long terme. La majorité de nos tapis sont résistants à l'eau et lavables, garantissant une hygiène parfaite pour votre espace." },
-  { q: 'Les tapis RGB améliorent-ils les performances ?',
-    a: "Non, techniquement le RGB n'améliore pas la précision ni la vitesse. Mais c'est un vrai plus esthétique pour un setup gaming, et certains modèles intègrent un hub USB ou une recharge sans fil pour la souris - là, ça devient pratique." },
-  { q: 'Comment nettoyer un tapis de souris ?',
-    a: "À la main avec de l'eau tiède et un peu de savon doux, en frottant délicatement avec une éponge. Rincez abondamment et laissez sécher à plat, à l'air libre (jamais au sèche-cheveux ni au soleil direct). Évitez la machine à laver sur les modèles avec base caoutchouc cousue." },
-];
+// Témoignages + FAQ : full content dans site.config.home.* par locale.
+const testimonials = siteConfig.home?.testimonials?.fr ?? [];
+const faqs = siteConfig.home?.faqs?.fr ?? [];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 const formatPrice = (n: number) => new Intl.NumberFormat('fr-FR', {
@@ -143,7 +100,7 @@ const faqSchema = {
       src="/images/home/hero-desktop.webp"
       srcset="/images/home/hero-mobile.webp 1080w, /images/home/hero-desktop-800w.webp 800w, /images/home/hero-desktop.webp 2560w"
       sizes="100vw"
-      alt="Tapis de souris BuddyPad dans un setup gaming élégant"
+      alt={siteConfig.home?.heroImageAlt ?? siteConfig.name}
       class="hero-img hero-bg"
       fetchpriority="high"
       loading="eager"

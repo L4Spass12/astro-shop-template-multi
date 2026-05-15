@@ -171,7 +171,7 @@ const allSchemas = [...baseSchemas, ...extraSchemas];
     {siteConfig.shop?.enabled && siteConfig.shop?.provider === 'atelier' && (
       <script
         src="https://tanstack-start-app.seamless-cart.workers.dev/api/public/widget.js"
-        data-shop-id="50e9f184-21e0-43bc-940e-52768855c84f"
+        data-shop-id={siteConfig.shop?.atelierShopId}
         data-locale={currentLocale}
         data-language={currentLocale}
         data-currency={currencyForLocale(currentLocale)}

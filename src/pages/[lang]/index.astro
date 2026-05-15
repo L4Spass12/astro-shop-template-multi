@@ -39,84 +39,19 @@ const featuredProducts = [
 function byCategory(slug: string) {
   return localeProducts.filter(p => (p.data.categories || []).includes(slug));
 }
-const categoryRows = [
-  {
-    slug: 'tapis-de-souris-manga-anime',
-    label: lang === 'en' ? 'Manga / Anime' : lang === 'de' ? 'Manga / Anime' : 'Manga / Anime',
-    products: byCategory('tapis-de-souris-manga-anime'),
-    glow1: 'rgba(255, 92, 122, 0.18)', glow2: 'rgba(255, 140, 80, 0.12)',
-  },
-  {
-    slug: 'tapis-de-souris-gaming',
-    label: 'Gaming',
-    products: byCategory('tapis-de-souris-gaming'),
-    glow1: 'rgba(0, 200, 255, 0.16)', glow2: 'rgba(59, 91, 255, 0.14)',
-  },
-  {
-    slug: 'tapis-de-souris-fantasy',
-    label: 'Fantasy',
-    products: byCategory('tapis-de-souris-fantasy'),
-    glow1: 'rgba(155, 92, 255, 0.20)', glow2: 'rgba(196, 120, 255, 0.14)',
-  },
-  {
-    slug: 'tapis-de-souris-girly',
-    label: 'Girly',
-    products: byCategory('tapis-de-souris-girly'),
-    glow1: 'rgba(255, 120, 180, 0.22)', glow2: 'rgba(255, 180, 210, 0.15)',
-  },
-  {
-    slug: 'tapis-de-souris-minimaliste',
-    label: lang === 'en' ? 'Minimalist' : lang === 'de' ? 'Minimalistisch' : 'Minimaliste',
-    products: byCategory('tapis-de-souris-minimaliste'),
-    glow1: 'rgba(200, 200, 220, 0.10)', glow2: 'rgba(140, 140, 160, 0.06)',
-  },
-].filter(row => row.products.length > 0);
+const categoryRows = (siteConfig.home?.categoryRows ?? [])
+  .map((row: any) => ({
+    ...row,
+    label: row.labels?.[lang] ?? row.labels?.en ?? row.label ?? row.slug,
+    products: byCategory(row.slug),
+  }))
+  .filter((row: any) => row.products.length > 0);
 
-// Témoignages localisés (mêmes témoignages traduits par marché)
-const testimonialsByLang = {
-  en: [
-    { name: 'Tom Duclk',   text: "I play for hours on end and used to feel discomfort with my old pads. This one is soft, stable and very pleasant, even during long sessions." },
-    { name: 'Niamh Oxley', text: "Very easy to clean, no marks even after several weeks of use. A simple wipe is enough to keep it like new." },
-    { name: 'Mary Green',  text: "The custom pad matches the image I provided exactly. Colors are sharp, the rendering is perfect and the quality is truly top-notch. Very satisfied." },
-    { name: 'Pierre L.',   text: "Unique and beautiful designs, the result is stunning. Excellent visual quality." },
-  ],
-  de: [
-    { name: 'Tom Duclk',   text: "Ich spiele stundenlang am Stück und hatte mit meinen alten Pads oft Unbehagen. Dieses ist weich, stabil und sehr angenehm, auch bei langen Sessions." },
-    { name: 'Niamh Oxley', text: "Sehr einfach zu reinigen, keine Spuren auch nach mehreren Wochen Nutzung. Ein einfaches Wischen reicht, damit es wie neu bleibt." },
-    { name: 'Mary Green',  text: "Das personalisierte Pad entspricht genau dem Bild, das ich geliefert habe. Die Farben sind scharf, das Ergebnis perfekt und die Qualität wirklich top. Sehr zufrieden." },
-    { name: 'Pierre L.',   text: "Einzigartige und wunderschöne Designs, das Ergebnis ist großartig. Exzellente visuelle Qualität." },
-  ],
-};
-const testimonials = testimonialsByLang[lang] ?? testimonialsByLang.en;
+// Témoignages localisés (depuis site.config.mjs)
+const testimonials = siteConfig.home?.testimonials?.[lang] ?? siteConfig.home?.testimonials?.en ?? [];
 
-// FAQs localisées (mêmes 5 questions traduites)
-const faqsByLang = {
-  en: [
-    { q: 'How to choose the best mouse pad for your setup?',
-      a: "Your mouse pad choice depends mainly on your use. For competitive players (FPS, MOBA), we recommend our gaming mouse pads with a Speed or Control surface, optimized for the precision of optical and laser sensors. For remote work or office use, prioritize comfort and aesthetics. Our models offer a smooth glide that reduces wrist fatigue, while dressing up your workspace with unique designs." },
-    { q: 'Why opt for an XXL mouse pad (Deskmat)?',
-      a: "The XXL mouse pad, also called Deskmat, has become the new standard. Unlike the small square format, the large format (900×400 mm / 35×16 in or more) covers your entire desk. It fits both your keyboard and mouse for total stability, protects the desk surface from scratches, and visually unifies your gaming or office setup. No more repositioning your mouse mid-game!" },
-    { q: 'Durable materials, non-slip base and stitched edges: what to check?',
-      a: "Pad quality is judged over time. All our products are designed with a non-slip natural rubber base that grips the desk perfectly, even during sudden movements. The micro-woven cloth surface ensures smooth glide, while reinforced stitched edges prevent fraying long-term. Most of our pads are water-resistant and machine-washable, guaranteeing perfect hygiene." },
-    { q: 'Do RGB pads improve performance?',
-      a: "No, technically RGB doesn't improve precision or speed. But it's a real aesthetic plus for a gaming setup, and some models integrate a USB hub or wireless charging for the mouse — that's where it becomes practical." },
-    { q: 'How to clean a mouse pad?',
-      a: "By hand with lukewarm water and a bit of mild soap, gently scrubbing with a sponge. Rinse thoroughly and let it air-dry flat (never with a hairdryer or in direct sunlight). Avoid the washing machine on models with a stitched rubber base." },
-  ],
-  de: [
-    { q: 'Wie wählst du das beste Mauspad für dein Setup?',
-      a: "Die Wahl deines Mauspads hängt vor allem von deiner Nutzung ab. Für kompetitive Spieler (FPS, MOBA) empfehlen wir unsere Gaming-Mauspads mit Speed- oder Control-Oberfläche, optimiert für die Präzision optischer und Laser-Sensoren. Fürs Homeoffice oder Büro bevorzug Komfort und Ästhetik. Unsere Modelle bieten ein sanftes Gleiten, das die Handgelenkermüdung reduziert, und schmücken deinen Arbeitsplatz mit einzigartigen Designs." },
-    { q: 'Warum ein XXL-Mauspad (Deskmat) wählen?',
-      a: "Das XXL-Mauspad, auch Deskmat genannt, ist die neue Norm geworden. Im Gegensatz zum quadratischen Standardformat bedeckt das große Format (900×400 mm oder mehr) deinen gesamten Schreibtisch. Es nimmt sowohl deine Tastatur als auch deine Maus für totale Stabilität auf, schützt die Schreibtischoberfläche vor Kratzern und vereint visuell dein Gaming- oder Büro-Setup. Kein Repositionieren der Maus mehr mitten im Spiel!" },
-    { q: 'Langlebige Materialien, rutschfeste Basis und vernähte Ränder: was prüfen?',
-      a: "Die Qualität eines Pads beurteilt sich über die Zeit. Alle unsere Produkte sind mit einer rutschfesten Naturkautschuk-Basis konzipiert, die perfekt am Schreibtisch haftet, auch bei abrupten Bewegungen. Die mikro-gewebte Stoffoberfläche sichert ein sanftes Gleiten, während verstärkte vernähte Ränder das Ausfransen langfristig verhindern. Die meisten unserer Pads sind wasserbeständig und maschinenwaschbar." },
-    { q: 'Verbessern RGB-Pads die Performance?',
-      a: "Nein, technisch verbessert RGB weder Präzision noch Geschwindigkeit. Aber es ist ein echter ästhetischer Plus für ein Gaming-Setup, und einige Modelle integrieren einen USB-Hub oder kabelloses Laden für die Maus — da wird es praktisch." },
-    { q: 'Wie reinigt man ein Mauspad?',
-      a: "Per Hand mit lauwarmem Wasser und etwas milder Seife, sanft mit einem Schwamm reiben. Gründlich spülen und flach an der Luft trocknen lassen (niemals mit Föhn oder in direkter Sonne). Vermeide die Waschmaschine bei Modellen mit vernähter Gummibasis." },
-  ],
-};
-const faqs = faqsByLang[lang] ?? faqsByLang.en;
+// FAQs localisées (depuis site.config.mjs)
+const faqs = siteConfig.home?.faqs?.[lang] ?? siteConfig.home?.faqs?.en ?? [];
 
 // Helpers
 const intlLocale = lang === 'en' ? 'en-GB' : lang === 'de' ? 'de-DE' : 'fr-FR';

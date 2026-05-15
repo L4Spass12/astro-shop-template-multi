@@ -27,8 +27,8 @@ const web3formsKey = siteConfig.forms?.web3formsKey ?? '';
 
     <form id="contact-form" class="space-y-5" novalidate>
       <input type="hidden" name="access_key" value={web3formsKey} />
-      <input type="hidden" name="subject" value="Nouveau message contact - BuddyPad" />
-      <input type="hidden" name="from_name" value="Formulaire BuddyPad" />
+      <input type="hidden" name="subject" value={`Nouveau message contact - ${siteConfig.forms?.subjectPrefix ?? siteConfig.name}`} />
+      <input type="hidden" name="from_name" value={`Formulaire ${siteConfig.forms?.subjectPrefix ?? siteConfig.name}`} />
       <input type="checkbox" name="botcheck" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
