@@ -99,6 +99,39 @@ npm run preview  # vérif visuelle
 **secrets repo** :
 - `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`, `FTP_SERVER_DIR`
 
+## 🤖 Système d'articles auto-générés (CRON 3×/semaine)
+
+Le template inclut une chaîne complète de génération + traduction + déploiement d'articles SEO. **Conserve-la** — c'est un gros différenciateur.
+
+**Pipeline** (`.github/workflows/generate-article.yml`, cron `0 8 * * 1,3,5`) :
+1. `scripts/generate-article.mjs` — pioche un sujet dans `scripts/topics.json`, génère un article FR via Claude API, télécharge 2-3 images Unsplash.
+2. `scripts/translate-content.mjs --lang en/de --collection blog` — traduit auto en EN + DE (idempotent).
+3. `scripts/generate-responsive.mjs` — variants `-400w` / `-800w` pour LCP.
+4. Commit + build + déploiement FTP Hostinger.
+
+**Pour activer sur un nouveau site :**
+
+- Édite le bloc `article:` dans `site.config.mjs` :
+  - `context` — phrase qui décrit le site (injectée dans le prompt Claude)
+  - `theme` — thématique principale (sert à proposer de nouveaux sujets)
+  - `cta` — phrase de fin d'article
+  - `author` — nom affiché dans le frontmatter
+  - `unsplashContext` — mot-clé visuel ajouté à chaque recherche image
+  - `coverFallbackKeyword` — fallback si Unsplash ne renvoie rien
+- Remplis `scripts/topics.json` avec ~30-50 sujets dans ta niche (format `[{"title": "..."}]` — le script ajoute `publishedAt` au fur et à mesure).
+- Configure les **secrets GitHub** du repo :
+  - `ANTHROPIC_API_KEY` (clé Claude API)
+  - `UNSPLASH_ACCESS_KEY` (clé Unsplash Developer)
+  - `FTP_SERVER` / `FTP_USERNAME` / `FTP_PASSWORD` (déjà nécessaires pour `deploy.yml`)
+
+**Test manuel** : onglet *Actions* GitHub → `Generate Article` → *Run workflow*. Le premier run vérifie tout le pipeline sans attendre le cron.
+
+**Scripts utilitaires complémentaires** (à conserver, utiles pour la maintenance) :
+- `scripts/translate-all.mjs` — re-traduit tout le contenu si la config change
+- `scripts/i18n-skeleton-{blog,products}.mjs` — crée les squelettes EN/DE manquants
+- `scripts/optimize-images.mjs` / `generate-responsive.mjs` — pipeline image
+- `scripts/init.mjs` — bootstrap d'un nouveau site (à lire avant tout)
+
 ## 🚫 À ne JAMAIS toucher (ces fichiers sont génériques, validés)
 
 - `src/lib/i18n.ts` — moteur i18n
@@ -107,7 +140,9 @@ npm run preview  # vérif visuelle
 - `src/components/CookieBanner.astro`
 - `src/components/Header.astro`, `Footer.astro` (lisent déjà config)
 - `astro.config.mjs`
-- `.github/workflows/`
+- `.github/workflows/` (deploy.yml + generate-article.yml)
+- `scripts/generate-article.mjs`, `scripts/translate-content.mjs`,
+  `scripts/generate-responsive.mjs` — chaîne d'articles auto
 
 ## 🔍 Comment vérifier qu'il ne reste plus de hardcode "buddypad"
 

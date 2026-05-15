@@ -197,7 +197,7 @@ Réponds en JSON uniquement, sans markdown :
     }]
   });
 
-  let meta = { category: siteConfig.categories[0], tags: ['tapis de souris', 'setup'], kw: title };
+  let meta = { category: siteConfig.categories[0], tags: [siteConfig.article.theme.split(',')[0].trim()], kw: title };
   try {
     const raw = metaMsg.content[0].text.replace(/```json\n?|\n?```/g, '').trim();
     meta = JSON.parse(raw);
@@ -324,7 +324,7 @@ Aucun lien ne peut être omis. Chaque lien doit apparaître une fois dans le tex
   const validSlugs = new Set(existingArticles.map(a => a.slug));
   rawContent = rawContent.replace(/\]\(\/(?:blog\/)?([a-z0-9-]+)\/?\)/g, (fullMatch, slug) => {
     // Slugs réservés non-blog (homepage, listing, etc.) : on laisse passer le match d'origine.
-    const reserved = new Set(['blog', 'contact', 'tapis-de-souris', 'category', 'product', 'product-category']);
+    const reserved = new Set(['blog', 'contact', siteConfig.shop.path, 'category', 'product', 'product-category']);
     if (reserved.has(slug)) return fullMatch;
     if (validSlugs.has(slug)) return `](/${slug}/)`;
     // Correspondance approximative (chars en commun à la même position)
